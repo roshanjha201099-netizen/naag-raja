@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     # API Keys
     OPENAI_API_KEY: str = ""
     GOOGLE_SEARCH_API_KEY: str = ""
+    SARVAM_API_KEY: str = "sk_i3a2823s_F10bhgrSZaMkKubyXNXUPh9P"
+    SARVAM_TTS_URL: str = "https://api.sarvam.ai/text-to-speech"
 
     # Model Storage Paths
     MODEL_ONNX_PATH: str = "models/snake_model.onnx"

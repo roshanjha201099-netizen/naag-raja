@@ -13,6 +13,7 @@ from app.services.inference import ml_engine
 from app.services.geo_ranking import LocationAwareRankingService
 from app.services.safety_engine import DeterministicSafetyEngine
 from app.services.llm_explainer import llm_explainer
+from app.services.sarvam_tts import sarvam_tts
 from app.services.response_composer import ResponseComposerService
 
 logger = logging.getLogger("naagrakshak.predict")
@@ -20,24 +21,47 @@ router = APIRouter()
 
 @router.post("/predict", response_model=PredictResponse)
 async def predict_snake(
-    image: UploadFile = File(..., description="Snake specimen field image file (JPEG, PNG, WEBP)"),
+    image: Optional[UploadFile] = File(None, description="Snake specimen field image file (JPEG, PNG, WEBP)"),
+    image_base64: Optional[str] = Form(None, description="Base64 encoded image string"),
     intent: Optional[str] = Form("SNAKE_ENCOUNTER", description="User field intent enum"),
     state: Optional[str] = Form(None, description="Indian state or region name"),
+    language_code: Optional[str] = Form("hi-IN", description="Regional language code (hi-IN, bn-IN, ta-IN, mr-IN, te-IN, kn-IN, ml-IN, gu-IN, pa-IN, en-IN)"),
     db: AsyncSession = Depends(get_db)
 ):
     start_time = time.time()
     req_id = str(uuid.uuid4())
+    lang_clean = language_code if language_code else "hi-IN"
 
     # Parse Intent Enum
-    intent_clean = intent.upper() if intent else "SNAKE_ENCOUNTER"
+    INTENT_ALIAS_MAP = {
+        "BITE": "SNAKE_BITE_EMERGENCY",
+        "SNAKE_BITE": "SNAKE_BITE_EMERGENCY",
+        "SNAKE_BITE_EMERGENCY": "SNAKE_BITE_EMERGENCY",
+        "ENCOUNTER": "SNAKE_ENCOUNTER",
+        "SNAKE_ENCOUNTER": "SNAKE_ENCOUNTER",
+        "STUDY": "STUDY_RESEARCH",
+        "STUDY_RESEARCH": "STUDY_RESEARCH",
+        "PHOTOGRAPHY": "WILDLIFE_PHOTOGRAPHY",
+        "WILDLIFE_PHOTOGRAPHY": "WILDLIFE_PHOTOGRAPHY"
+    }
+    raw_intent_key = intent.upper().strip() if intent else "SNAKE_ENCOUNTER"
+    intent_clean = INTENT_ALIAS_MAP.get(raw_intent_key, "SNAKE_ENCOUNTER")
     try:
         intent_enum = IntentEnum(intent_clean)
     except ValueError:
         intent_enum = IntentEnum.SNAKE_ENCOUNTER
 
-    # 1. Read & Validate Binary Stream
-    file_bytes = await image.read()
-    pil_image = ImageValidationService.validate_image_stream(file_bytes)
+    # 1. Read & Validate Binary Stream or Base64 String
+    if image_base64:
+        pil_image = ImageValidationService.validate_image_stream(image_base64)
+    elif image:
+        file_bytes = await image.read()
+        pil_image = ImageValidationService.validate_image_stream(file_bytes)
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Either 'image' file upload or 'image_base64' string must be provided."
+        )
 
     # 2. Image Quality & Clarity Analysis (OpenCV Laplacian Blur Metric)
     quality_score = ImageQualityAnalyzer.analyze_quality(pil_image)
@@ -64,17 +88,27 @@ async def predict_snake(
         identification_status=ml_result.get("identification_status", "HIGH_CONFIDENCE")
     )
 
-    # 6. Optional LLM Natural Language Explainer
-    explanation = await llm_explainer.generate_explanation(
-        species_name=top_1.get("common_name", top_1.get("scientific_name", "")),
+    # 6. OpenAI LLM Regional Language Script Synthesis
+    regional_explanation = await llm_explainer.generate_explanation(
+        common_name=top_1.get("common_name", "Unknown Species"),
+        hindi_name=top_1.get("hindi_name", None),
         safety_level=safety_payload.safety_level.value,
         intent=intent_enum.value,
-        location=state
+        location=state,
+        language_code=lang_clean
     )
+
+    # 7. Sarvam AI Text-to-Speech (TTS) Voice Audio Generation
+    audio_base64 = None
+    if regional_explanation:
+        audio_base64 = await sarvam_tts.generate_speech_audio(
+            text_script=regional_explanation,
+            language_code=lang_clean
+        )
 
     proc_time_ms = float(round((time.time() - start_time) * 1000, 2))
 
-    # 7. Persist Prediction Log to DB
+    # 8. Persist Prediction Log to DB
     try:
         log_entry = PredictionLog(
             request_id=req_id,
@@ -91,7 +125,7 @@ async def predict_snake(
     except Exception as e:
         logger.warning(f"Failed to record prediction log to DB: {e}")
 
-    # 8. Compose Intent-Driven Response
+    # 9. Compose Intent-Driven Response
     return ResponseComposerService.compose_response(
         request_id=req_id,
         ml_result=ml_result,
@@ -101,5 +135,7 @@ async def predict_snake(
         state=state,
         quality_score=quality_score,
         processing_time_ms=proc_time_ms,
-        llm_explanation=explanation
+        llm_explanation=regional_explanation,
+        audio_base64=audio_base64,
+        language_code=lang_clean
     )

@@ -2,6 +2,7 @@ import logging
 from typing import Dict, Any, Optional
 from openai import AsyncOpenAI
 from app.config import settings
+from app.services.sarvam_tts import VALID_SARVAM_LANGUAGES
 
 logger = logging.getLogger("naagrakshak.llm_explainer")
 
@@ -17,41 +18,58 @@ class LLMExplainerService:
 
     async def generate_explanation(
         self,
-        species_name: str,
+        common_name: str,
+        hindi_name: Optional[str],
         safety_level: str,
         intent: str,
-        location: Optional[str] = None
+        location: Optional[str] = None,
+        language_code: str = "hi-IN"
     ) -> Optional[str]:
         if not self.client:
             return None
 
+        target_language = VALID_SARVAM_LANGUAGES.get(language_code, "Hindi")
+        local_name_str = f"{common_name}" + (f" ({hindi_name})" if hindi_name else "")
+
+        intent_upper = intent.upper()
+        if "BITE" in intent_upper:
+            intent_action_instruction = "SNAKE BITE EMERGENCY! You MUST instruct immediately: 'सांप ने काटा है! मरीज को शांत रखें, काटे स्थान को हिलाएं नहीं और तुरंत नजदीकी एंटी-वेनम अस्पताल (ASV Hospital) जाएं। घाव को काटें या बांधें नहीं।'"
+        else:
+            intent_action_instruction = "SNAKE ENCOUNTER ALERT! Instruct immediately: 'सांप का सामना हुआ है। 15 फीट दूर रहें और तुरंत सुरक्षित स्थान पर जाएं।'"
+
         prompt = f"""
-You are NaagRakshak AI, an expert herpetological safety explainer in India.
-Provide a concise, 2-3 sentence field safety note based ONLY on the following verified facts:
+You are NaagRakshak Field Safety Voice Assistant for India.
+Generate a VERY CONCISE 2-sentence emergency field alert script strictly written in the **{target_language}** language script.
 
-- Detected Species: {species_name}
+FACTS:
+- Snake Common/Local Name: {local_name_str}
 - Assigned Safety Level: {safety_level}
-- User Situation / Intent: {intent}
-- Location: {location or 'India'}
+- Situation Intent: {intent} ({intent_action_instruction})
+- Region: {location or 'India'}
 
-STRICT RULES:
-1. Do NOT re-identify or contradict the species name ({species_name}) or safety level ({safety_level}).
-2. Do NOT provide medical anti-venom dosage or medical diagnoses.
-3. Be professional, urgent, clear, and focused on safety in Indian field conditions.
+CRITICAL RULES FOR TTS VOICE:
+1. Write the ENTIRE output strictly in **{target_language}** script (e.g. Devanagari script for Hindi/Marathi, Bengali script for Bengali, Tamil script for Tamil, etc.).
+2. Do NOT use Latin binomial scientific names like "Naja naja" or "Bungarus caeruleus". Use ONLY common local names (e.g. "Spectacled Cobra / नाग गेहुंअन").
+3. For SNAKE_BITE_EMERGENCY intent, MUST mention snake bite emergency care and hospital dispatch! Do NOT say 15 feet standoff or "सामना हुआ है" when bitten.
+4. Keep it under 30 words total so it sounds natural when spoken aloud.
+5. Do NOT include markdown formatting or quotes.
 """
         try:
             response = await self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "You are a field herpetology safety assistant for India."},
+                    {"role": "system", "content": f"You are a field herpetology safety assistant producing spoken audio scripts in {target_language}."},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=150,
                 temperature=0.3
             )
-            return response.choices[0].message.content.strip()
+            script = response.choices[0].message.content.strip()
+            # Strip quotes if any
+            script = script.strip('"\'')
+            return script
         except Exception as e:
-            logger.warning(f"LLM explanation generation failed: {e}")
+            logger.warning(f"LLM regional explanation generation failed: {e}")
             return None
 
 llm_explainer = LLMExplainerService()

@@ -1,4 +1,5 @@
 import io
+import base64
 from PIL import Image
 from fastapi import HTTPException, status
 from app.config import settings
@@ -14,7 +15,26 @@ ALLOWED_MAGIC_BYTES = [
 
 class ImageValidationService:
     @staticmethod
-    def validate_image_stream(file_bytes: bytes) -> Image.Image:
+    def validate_image_stream(input_data: any) -> Image.Image:
+        file_bytes = b""
+        if isinstance(input_data, str):
+            # Parse Base64 string
+            try:
+                if "," in input_data:
+                    input_data = input_data.split(",", 1)[1]
+                file_bytes = base64.b64decode(input_data)
+            except Exception as e:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid Base64 image payload: {str(e)}"
+                )
+        elif isinstance(input_data, bytes):
+            file_bytes = input_data
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Unsupported image input payload type."
+            )
         # 1. Check Payload Size Cap
         if len(file_bytes) > settings.MAX_PAYLOAD_BYTES:
             raise HTTPException(

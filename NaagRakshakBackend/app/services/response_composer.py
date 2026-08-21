@@ -16,7 +16,9 @@ class ResponseComposerService:
         state: Optional[str] = None,
         quality_score: float = 0.90,
         processing_time_ms: float = 120.0,
-        llm_explanation: Optional[str] = None
+        llm_explanation: Optional[str] = None,
+        audio_base64: Optional[str] = None,
+        language_code: str = "hi-IN"
     ) -> PredictResponse:
         
         # Build predictions array
@@ -69,7 +71,9 @@ class ResponseComposerService:
             intent=intent,
             protocol=protocol,
             nearby_facilities_endpoint=nearby_endpoint,
-            llm_explanation=llm_explanation
+            llm_explanation=llm_explanation,
+            audio_base64=audio_base64,
+            language_code=language_code
         )
 
         meta = ModelMetaSchema(

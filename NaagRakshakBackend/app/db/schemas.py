@@ -53,6 +53,8 @@ class ContextualGuidanceSchema(BaseModel):
     protocol: ProtocolSchema
     nearby_facilities_endpoint: Optional[str] = None
     llm_explanation: Optional[str] = None
+    audio_base64: Optional[str] = None
+    language_code: Optional[str] = "hi-IN"
 
 class ModelMetaSchema(BaseModel):
     detector_version: str = "yolov8m-snake-v1.0"
