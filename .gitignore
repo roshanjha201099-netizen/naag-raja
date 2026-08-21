@@ -1,0 +1,131 @@
+# ====================================================================
+# Python & Environment
+# ====================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Jupyter Notebook & Caching
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ====================================================================
+# Machine Learning, Deep Learning & Datasets
+# ====================================================================
+# Large Dataset Images (Keep metadata tracked, ignore raw heavy archives/images)
+datasets/raw/
+datasets/processed/
+*.tar.gz
+*.tar
+*.zip
+*.7z
+*.rar
+*.h5
+*.hdf5
+
+# Exception: Always keep your metadata directory tracked
+!datasets/metadata/
+!datasets/metadata/*.csv
+
+# Model Checkpoints & Weights
+checkpoints/
+weights/
+saved_models/
+*.pt
+*.pth
+*.onnx
+*.pkl
+*.bin
+*.tflite
+*.safetensors
+
+# Experiment Logging & Profiling
+runs/
+wandb/
+mlruns/
+lightning_logs/
+events.out.tfevents.*
+tensorboard/
+*.log
+
+# ====================================================================
+# React & Node (Frontend)
+# ====================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# React Production Builds
+dist/
+build/
+out/
+.next/
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+
+# ====================================================================
+# Operating System & IDE Caches
+# ====================================================================
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDEs
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
