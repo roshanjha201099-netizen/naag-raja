@@ -129,3 +129,36 @@ $RECYCLE.BIN/
 *.swp
 *.swo
 *~
+*.jfj 
+*.png
+# =========================
+# Images / Pictures
+# =========================
+
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+*.bmp
+*.tiff
+*.tif
+*.svg
+*.ico
+*.avif
+*.heic
+*.heif
+*.raw
+*.cr2
+*.nef
+*.arw
+
+# Image folders
+**/images/
+**/image/
+**/imgs/
+**/img/
+**/photos/
+**/pictures/
+**/uploads/
+**/uploads/**

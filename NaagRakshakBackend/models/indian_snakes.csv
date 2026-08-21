@@ -1,0 +1,368 @@
+scientific_name,family,venomous_status,iucn_status,source
+Acrochordus granulatus,Acrochordidae,non-venomous,LC,ZSI-2025
+Eryx conicus,Boidae,non-venomous,LC,ZSI-2025
+Eryx johnii,Boidae,non-venomous,NT,ZSI-2025
+Eryx whitakeri,Boidae,non-venomous,LC,ZSI-2025
+Malayopython reticulatus,Pythonidae,non-venomous,LC,ZSI-2025
+Python bivittatus,Pythonidae,non-venomous,VU,ZSI-2025
+Python molurus,Pythonidae,non-venomous,NT,ZSI-2025
+Xenopeltis unicolor,Xenopeltidae,non-venomous,LC,ZSI-2025
+Gerrhopilus andamanensis,Gerrhopilidae,non-venomous,DD,ZSI-2025
+Gerrhopilus beddomii,Gerrhopilidae,non-venomous,LC,ZSI-2025
+Gerrhopilus mcdowelli,Gerrhopilidae,non-venomous,DD,ZSI-2025
+Gerrhopilus oligolepis,Gerrhopilidae,non-venomous,DD,ZSI-2025
+Gerrhopilus tindalli,Gerrhopilidae,non-venomous,LC,ZSI-2025
+Myriopholis blanfordii,Leptotyphlopidae,non-venomous,LC,ZSI-2025
+Myriopholis macrorhyncha,Leptotyphlopidae,non-venomous,LC,ZSI-2025
+Argyrophis albiceps,Typhlopidae,non-venomous,LC,ZSI-2025
+Argyrophis diardii,Typhlopidae,non-venomous,LC,ZSI-2025
+Argyrophis giadinhensis,Typhlopidae,non-venomous,DD,ZSI-2025
+Argyrophis muelleri,Typhlopidae,non-venomous,LC,ZSI-2025
+Argyrophis oatesii,Typhlopidae,non-venomous,DD,ZSI-2025
+Indotyphlops ahsanai,Typhlopidae,non-venomous,DD,ZSI-2025
+Indotyphlops braminus,Typhlopidae,non-venomous,LC,ZSI-2025
+Indotyphlops jerdoni,Typhlopidae,non-venomous,LC,ZSI-2025
+Indotyphlops lazelli,Typhlopidae,non-venomous,DD,ZSI-2025
+Indotyphlops meszoelyi,Typhlopidae,non-venomous,DD,ZSI-2025
+Indotyphlops pammeces,Typhlopidae,non-venomous,LC,ZSI-2025
+Indotyphlops porrectus,Typhlopidae,non-venomous,LC,ZSI-2025
+Melanophidium bilineatum,Uropeltidae,non-venomous,DD,ZSI-2025
+Melanophidium khairei,Uropeltidae,non-venomous,DD,ZSI-2025
+Melanophidium punctatum,Uropeltidae,non-venomous,LC,ZSI-2025
+Melanophidium wynaudense,Uropeltidae,non-venomous,LC,ZSI-2025
+Platyplectrurus madurensis madurensis,Uropeltidae,non-venomous,EN,ZSI-2025
+Platyplectrurus madurensis ruhstrati,Uropeltidae,non-venomous,DD,ZSI-2025
+Platyplectrurus trilineatus,Uropeltidae,non-venomous,LC,ZSI-2025
+Plectrurus aureus,Uropeltidae,non-venomous,DD,ZSI-2025
+Plectrurus canaricus,Uropeltidae,non-venomous,DD,ZSI-2025
+Plectrurus guentheri,Uropeltidae,non-venomous,LC,ZSI-2025
+Plectrurus perroteti,Uropeltidae,non-venomous,LC,ZSI-2025
+Rhinophis fergusonianus,Uropeltidae,non-venomous,DD,ZSI-2025
+Rhinophis goweri,Uropeltidae,non-venomous,DD,ZSI-2025
+Rhinophis karinthandani,Uropeltidae,non-venomous,NE,ZSI-2025
+Rhinophis melanoleucus,Uropeltidae,non-venomous,NE,ZSI-2025
+Rhinophis punctatus,Uropeltidae,non-venomous,LC,ZSI-2025
+Rhinophis sanguineus,Uropeltidae,non-venomous,LC,ZSI-2025
+Rhinophis travancoricus,Uropeltidae,non-venomous,VU,ZSI-2025
+Teretrurus hewstoni,Uropeltidae,non-venomous,NE,ZSI-2025
+Teretrurus rhodogaster,Uropeltidae,non-venomous,LC,ZSI-2025
+Teretrurus travancoricus,Uropeltidae,non-venomous,DD,ZSI-2025
+Uropeltis arcticeps,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis beddomii,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis bhupathyi,Uropeltidae,non-venomous,NE,ZSI-2025
+Uropeltis bicatenata,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis broughami,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis ceylanica,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis dindigalensis,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis ellioti,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis grandis,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis kolliensis,Uropeltidae,non-venomous,NE,ZSI-2025
+Uropeltis liura,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis macrolepis macrolepis,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis macrolepis mahabaleshwarensis,Uropeltidae,non-venomous,NE,ZSI-2025
+Uropeltis macrorhyncha,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis maculata,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis madurensis,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis myhendrae,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis nilgherriensis,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis nitida,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis ocellata,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis perroteti,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis petersi,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis phipsonii,Uropeltidae,non-venomous,VU,ZSI-2025
+Uropeltis pulneyensis,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis rajendrani,Uropeltidae,non-venomous,NE,ZSI-2025
+Uropeltis rubrolineata,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis rubromaculata,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis shevaroyensis,Uropeltidae,non-venomous,NE,ZSI-2025
+Uropeltis shorttii,Uropeltidae,non-venomous,DD,ZSI-2025
+Uropeltis smithi,Uropeltidae,non-venomous,LC,ZSI-2025
+Uropeltis snyderi,Uropeltidae,non-venomous,NE,ZSI-2025
+Uropeltis starckeae,Uropeltidae,non-venomous,NE,ZSI-2025
+Uropeltis woodmasoni,Uropeltidae,non-venomous,LC,ZSI-2025
+Ahaetulla farnsworthi,Colubridae,mildly venomous,NE,ZSI-2025
+Ahaetulla flavescens,Colubridae,mildly venomous,NE,ZSI-2025
+Ahaetulla fronticincta,Colubridae,mildly venomous,LC,ZSI-2025
+Ahaetulla isabellina,Colubridae,mildly venomous,NE,ZSI-2025
+Ahaetulla laudankia,Colubridae,mildly venomous,NE,ZSI-2025
+Ahaetulla mycterizans,Colubridae,mildly venomous,LC,ZSI-2025
+Ahaetulla nasuta,Colubridae,mildly venomous,LC,ZSI-2025
+Ahaetulla oxyrhyncha,Colubridae,mildly venomous,NE,ZSI-2025
+Ahaetulla perroteti,Colubridae,mildly venomous,LC,ZSI-2025
+Ahaetulla prasina,Colubridae,mildly venomous,LC,ZSI-2025
+Ahaetulla pulverulenta,Colubridae,mildly venomous,LC,ZSI-2025
+Ahaetulla sahyadrensis,Colubridae,mildly venomous,NE,ZSI-2025
+Ahaetulla travancorica,Colubridae,mildly venomous,NE,ZSI-2025
+Archelaphe bella,Colubridae,non-venomous,LC,ZSI-2025
+Argyrogena fasciolata,Colubridae,non-venomous,LC,ZSI-2025
+Argyrogena vittacaudata,Colubridae,non-venomous,NE,ZSI-2025
+Atretium schistosum,Colubridae,non-venomous,LC,ZSI-2025
+Blythia hmuifang,Colubridae,non-venomous,NE,ZSI-2025
+Blythia reticulata,Colubridae,non-venomous,LC,ZSI-2025
+Boiga andamanensis,Colubridae,mildly venomous,LC,ZSI-2025
+Boiga barnesii,Colubridae,mildly venomous,LC,ZSI-2025
+Boiga beddomei,Colubridae,mildly venomous,LC,ZSI-2025
+Boiga ceylonensis,Colubridae,mildly venomous,LC,ZSI-2025
+Boiga cyanea,Colubridae,mildly venomous,LC,ZSI-2025
+Boiga cynodon,Colubridae,mildly venomous,LC,ZSI-2025
+Boiga dightoni,Colubridae,mildly venomous,VU,ZSI-2025
+Boiga flaviviridis,Colubridae,mildly venomous,NE,ZSI-2025
+Boiga forsteni,Colubridae,mildly venomous,LC,ZSI-2025
+Boiga gokool,Colubridae,mildly venomous,LC,ZSI-2025
+Boiga multifasciata,Colubridae,mildly venomous,LC,ZSI-2025
+Boiga multomaculata,Colubridae,mildly venomous,LC,ZSI-2025
+Boiga nuchalis,Colubridae,mildly venomous,LC,ZSI-2025
+Boiga ochracea,Colubridae,mildly venomous,LC,ZSI-2025
+Boiga quincunciata,Colubridae,mildly venomous,LC,ZSI-2025
+Boiga siamensis,Colubridae,mildly venomous,LC,ZSI-2025
+Boiga thackerayi,Colubridae,mildly venomous,NE,ZSI-2025
+Boiga trigonata,Colubridae,mildly venomous,LC,ZSI-2025
+Boiga wallachi,Colubridae,mildly venomous,LC,ZSI-2025
+Boiga whitakeri,Colubridae,mildly venomous,NE,ZSI-2025
+Calamaria pavimentata,Colubridae,non-venomous,LC,ZSI-2025
+Calamaria septentrionalis,Colubridae,non-venomous,LC,ZSI-2025
+Chrysopelea ornata,Colubridae,mildly venomous,LC,ZSI-2025
+Chrysopelea paradisi,Colubridae,mildly venomous,LC,ZSI-2025
+Chrysopelea taprobanica,Colubridae,mildly venomous,LC,ZSI-2025
+Coelognathus flavolineatus,Colubridae,non-venomous,LC,ZSI-2025
+Coelognathus helena helena,Colubridae,non-venomous,LC,ZSI-2025
+Coelognathus helena monticollaris,Colubridae,non-venomous,LC,ZSI-2025
+Coelognathus helena nigrilineata,Colubridae,non-venomous,LC,ZSI-2025
+Coelognathus radiatus,Colubridae,non-venomous,LC,ZSI-2025
+Coronella brachyura,Colubridae,non-venomous,LC,ZSI-2025
+Dendrelaphis biloreatus,Colubridae,non-venomous,LC,ZSI-2025
+Dendrelaphis cyanochloris,Colubridae,non-venomous,LC,ZSI-2025
+Dendrelaphis girii,Colubridae,non-venomous,NE,ZSI-2025
+Dendrelaphis gorei,Colubridae,non-venomous,LC,ZSI-2025
+Dendrelaphis grandoculis,Colubridae,non-venomous,LC,ZSI-2025
+Dendrelaphis humayuni,Colubridae,non-venomous,LC,ZSI-2025
+Dendrelaphis pictus,Colubridae,non-venomous,LC,ZSI-2025
+Dendrelaphis proarchos,Colubridae,non-venomous,LC,ZSI-2025
+Dendrelaphis subocularis,Colubridae,non-venomous,LC,ZSI-2025
+Dendrelaphis tristis,Colubridae,non-venomous,LC,ZSI-2025
+Dendrelaphis vogeli,Colubridae,non-venomous,LC,ZSI-2025
+Dendrelaphis walli,Colubridae,non-venomous,LC,ZSI-2025
+Elachistodon westermanni,Colubridae,mildly venomous,LC,ZSI-2025
+Elaphe cantoris,Colubridae,non-venomous,LC,ZSI-2025
+Elaphe hodgsonii,Colubridae,non-venomous,LC,ZSI-2025
+Elaphe taeniura,Colubridae,non-venomous,LC,ZSI-2025
+Euprepiophis mandarinus,Colubridae,non-venomous,LC,ZSI-2025
+Oreocryptophis porphyraceus porphyraceus,Colubridae,non-venomous,LC,ZSI-2025
+Oreocryptophis porphyraceus nigrofasciata,Colubridae,non-venomous,LC,ZSI-2025
+Fowlea flavipunctatus,Colubridae,non-venomous,LC,ZSI-2025
+Fowlea piscator,Colubridae,non-venomous,LC,ZSI-2025
+Fowlea punctatus,Colubridae,non-venomous,LC,ZSI-2025
+Fowlea sanctijohannis,Colubridae,non-venomous,LC,ZSI-2025
+Fowlea schnurrenbergeri,Colubridae,non-venomous,LC,ZSI-2025
+Gonyosoma coeruleum,Colubridae,non-venomous,NE,ZSI-2025
+Gonyosoma frenatum,Colubridae,non-venomous,LC,ZSI-2025
+Gonyosoma oxycephalum,Colubridae,non-venomous,LC,ZSI-2025
+Gonyosoma prasinum,Colubridae,non-venomous,LC,ZSI-2025
+Hebius andamanense,Colubridae,non-venomous,LC,ZSI-2025
+Hebius beddomei,Colubridae,non-venomous,LC,ZSI-2025
+Hebius bitaeniatum,Colubridae,non-venomous,LC,ZSI-2025
+Hebius clerki,Colubridae,non-venomous,LC,ZSI-2025
+Hebius khasiensis,Colubridae,non-venomous,LC,ZSI-2025
+Hebius modestum,Colubridae,non-venomous,LC,ZSI-2025
+Hebius monticola,Colubridae,non-venomous,LC,ZSI-2025
+Hebius nicobariense,Colubridae,non-venomous,DD,ZSI-2025
+Hebius octolineatum,Colubridae,non-venomous,LC,ZSI-2025
+Hebius parallelum,Colubridae,non-venomous,LC,ZSI-2025
+Hebius pealii,Colubridae,non-venomous,DD,ZSI-2025
+Hebius platyceps,Colubridae,non-venomous,LC,ZSI-2025
+Hebius venningi,Colubridae,non-venomous,LC,ZSI-2025
+Hebius xenura,Colubridae,non-venomous,LC,ZSI-2025
+Herpetoreas sieboldii,Colubridae,non-venomous,LC,ZSI-2025
+Liopeltis calamaria,Colubridae,non-venomous,LC,ZSI-2025
+Liopeltis frenatus,Colubridae,non-venomous,LC,ZSI-2025
+Liopeltis rappi,Colubridae,non-venomous,LC,ZSI-2025
+Liopeltis stoliczkae,Colubridae,non-venomous,LC,ZSI-2025
+Lycodon albofuscus,Colubridae,non-venomous,LC,ZSI-2025
+Lycodon anamallensis,Colubridae,non-venomous,LC,ZSI-2025
+Lycodon aulicus,Colubridae,non-venomous,LC,ZSI-2025
+Lycodon capucinus,Colubridae,non-venomous,LC,ZSI-2025
+Lycodon cathiensis,Colubridae,non-venomous,NE,ZSI-2025
+Lycodon chithrasekarai,Colubridae,non-venomous,NE,ZSI-2025
+Lycodon deccanensis,Colubridae,non-venomous,NE,ZSI-2025
+Lycodon fasciatus,Colubridae,non-venomous,LC,ZSI-2025
+Lycodon flavicollis,Colubridae,non-venomous,LC,ZSI-2025
+Lycodon flavomaculatus,Colubridae,non-venomous,LC,ZSI-2025
+Lycodon gammiei,Colubridae,non-venomous,DD,ZSI-2025
+Lycodon hypsirhinoides,Colubridae,non-venomous,DD,ZSI-2025
+Lycodon jara,Colubridae,non-venomous,LC,ZSI-2025
+Lycodon mackinnoni,Colubridae,non-venomous,LC,ZSI-2025
+Lycodon muelleri,Colubridae,non-venomous,LC,ZSI-2025
+Lycodon septentrionalis,Colubridae,non-venomous,LC,ZSI-2025
+Lycodon striatus,Colubridae,non-venomous,LC,ZSI-2025
+Lycodon tiwarii,Colubridae,non-venomous,LC,ZSI-2025
+Lycodon travancoricus,Colubridae,non-venomous,LC,ZSI-2025
+Lycodon zawi,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon affinis,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon albocinctus,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon arnensis,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon catenatus,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon churahensis,Colubridae,non-venomous,NE,ZSI-2025
+Oligodon cinereus,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon cruentatus,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon cyclurus,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon dorsalis,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon erythrogaster,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon erythrorhachis,Colubridae,non-venomous,DD,ZSI-2025
+Oligodon fasciatus,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon juglandifer,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon kheriensis,Colubridae,non-venomous,DD,ZSI-2025
+Oligodon mcdowelli,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon melaneus,Colubridae,non-venomous,DD,ZSI-2025
+Oligodon melanozonatus,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon nagao,Colubridae,non-venomous,NE,ZSI-2025
+Oligodon nikhili,Colubridae,non-venomous,DD,ZSI-2025
+Oligodon planiceps,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon purpurascens,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon rostripetiolaris,Colubridae,non-venomous,NE,ZSI-2025
+Oligodon taeniolatus,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon theobaldi,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon travancoricus,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon venustus,Colubridae,non-venomous,LC,ZSI-2025
+Oligodon woodmasoni,Colubridae,non-venomous,LC,ZSI-2025
+Opisthotropis andersonii,Colubridae,non-venomous,LC,ZSI-2025
+Opisthotropis maculosa,Colubridae,non-venomous,LC,ZSI-2025
+Plagiopholis blakewayi,Colubridae,non-venomous,LC,ZSI-2025
+Plagiopholis nuchalis,Colubridae,non-venomous,LC,ZSI-2025
+Platyceps bholanathi,Colubridae,non-venomous,DD,ZSI-2025
+Platyceps karelini,Colubridae,non-venomous,LC,ZSI-2025
+Platyceps plinii,Colubridae,non-venomous,LC,ZSI-2025
+Platyceps rhodorachis,Colubridae,non-venomous,LC,ZSI-2025
+Platyceps ventromaculatus,Colubridae,non-venomous,LC,ZSI-2025
+Pseudoxenodon macrops,Colubridae,non-venomous,LC,ZSI-2025
+Pseudoxenodon bambusicola,Colubridae,non-venomous,LC,ZSI-2025
+Ptyas carinata,Colubridae,non-venomous,LC,ZSI-2025
+Ptyas dhumnades,Colubridae,non-venomous,LC,ZSI-2025
+Ptyas korros,Colubridae,non-venomous,LC,ZSI-2025
+Ptyas mucosa,Colubridae,non-venomous,LC,ZSI-2025
+Ptyas nigromarginata,Colubridae,non-venomous,LC,ZSI-2025
+Rhabdops aquaticus,Colubridae,non-venomous,LC,ZSI-2025
+Rhabdops olivaceus,Colubridae,non-venomous,LC,ZSI-2025
+Rhabdophis bindi,Colubridae,mildly venomous,NE,ZSI-2025
+Rhabdophis chrysargos,Colubridae,mildly venomous,LC,ZSI-2025
+Rhabdophis himalayanus,Colubridae,mildly venomous,LC,ZSI-2025
+Rhabdophis leonardi,Colubridae,mildly venomous,LC,ZSI-2025
+Rhabdophis nuchalis,Colubridae,mildly venomous,LC,ZSI-2025
+Rhabdophis subminiatus,Colubridae,mildly venomous,LC,ZSI-2025
+Sibynophis bistrigatus,Colubridae,non-venomous,LC,ZSI-2025
+Sibynophis collaris,Colubridae,non-venomous,LC,ZSI-2025
+Sibynophis sagittarius,Colubridae,non-venomous,LC,ZSI-2025
+Sibynophis subpunctatus,Colubridae,non-venomous,LC,ZSI-2025
+Sibynophis triangularis,Colubridae,non-venomous,LC,ZSI-2025
+Spalerosophis arenarius,Colubridae,non-venomous,LC,ZSI-2025
+Spalerosophis diadema,Colubridae,non-venomous,LC,ZSI-2025
+Trachischium apteii,Colubridae,non-venomous,NE,ZSI-2025
+Trachischium fuscum,Colubridae,non-venomous,LC,ZSI-2025
+Trachischium guentheri,Colubridae,non-venomous,LC,ZSI-2025
+Trachischium laeve,Colubridae,non-venomous,LC,ZSI-2025
+Bitia hydroides,Homalopsidae,mildly venomous,LC,ZSI-2025
+Cantoria violacea,Homalopsidae,mildly venomous,LC,ZSI-2025
+Cerberus rynchops,Homalopsidae,mildly venomous,LC,ZSI-2025
+Cerberus schneiderii,Homalopsidae,mildly venomous,LC,ZSI-2025
+Dieurostus dussumieri,Homalopsidae,mildly venomous,LC,ZSI-2025
+Fordonia leucobalia,Homalopsidae,mildly venomous,LC,ZSI-2025
+Gerarda prevostiana,Homalopsidae,mildly venomous,LC,ZSI-2025
+Homalopsis buccata,Homalopsidae,mildly venomous,LC,ZSI-2025
+Phytolopsis punctata,Homalopsidae,mildly venomous,LC,ZSI-2025
+Asthenodipsas hexagonotus,Pareidae,non-venomous,LC,ZSI-2025
+Pareas andersonii,Pareidae,non-venomous,LC,ZSI-2025
+Pareas berdmorei,Pareidae,non-venomous,NE,ZSI-2025
+Pareas carinatus,Pareidae,non-venomous,LC,ZSI-2025
+Pareas kaduri,Pareidae,non-venomous,NE,ZSI-2025
+Pareas macularius,Pareidae,non-venomous,LC,ZSI-2025
+Pareas margaritophorus,Pareidae,non-venomous,LC,ZSI-2025
+Pareas modestus,Pareidae,non-venomous,LC,ZSI-2025
+Pareas monticola,Pareidae,non-venomous,LC,ZSI-2025
+Pareas victorianus,Pareidae,non-venomous,NE,ZSI-2025
+Psammophis condanarus,Psammophiidae,mildly venomous,LC,ZSI-2025
+Psammophis leithii,Psammophiidae,mildly venomous,LC,ZSI-2025
+Psammophis lineolatus,Psammophiidae,mildly venomous,LC,ZSI-2025
+Psammophis schokari,Psammophiidae,mildly venomous,LC,ZSI-2025
+Psammodynastes pulverulentus,Psammodynastidae,mildly venomous,LC,ZSI-2025
+Achalinus emilyae,Xenodermidae,non-venomous,NE,ZSI-2025
+Achalinus jinggangensis,Xenodermidae,non-venomous,DD,ZSI-2025
+Bungarus andamanensis,Elapidae,venomous,VU,ZSI-2025
+Bungarus bungaroides,Elapidae,venomous,LC,ZSI-2025
+Bungarus caeruleus,Elapidae,venomous,LC,ZSI-2025
+Bungarus fasciatus,Elapidae,venomous,LC,ZSI-2025
+Bungarus lividus,Elapidae,venomous,LC,ZSI-2025
+Bungarus niger,Elapidae,venomous,LC,ZSI-2025
+Bungarus sindanus,Elapidae,venomous,LC,ZSI-2025
+Bungarus walli,Elapidae,venomous,LC,ZSI-2025
+Calliophis beddomei,Elapidae,venomous,LC,ZSI-2025
+Calliophis bibroni,Elapidae,venomous,LC,ZSI-2025
+Calliophis castoe,Elapidae,venomous,DD,ZSI-2025
+Calliophis maculiceps,Elapidae,venomous,LC,ZSI-2025
+Calliophis melanurus,Elapidae,venomous,LC,ZSI-2025
+Calliophis nigrescens,Elapidae,venomous,LC,ZSI-2025
+Hydrophis caerulescens,Elapidae,venomous,LC,ZSI-2025
+Hydrophis cantoris,Elapidae,venomous,DD,ZSI-2025
+Hydrophis curtus,Elapidae,venomous,LC,ZSI-2025
+Hydrophis cyanocinctus,Elapidae,venomous,LC,ZSI-2025
+Hydrophis fasciatus,Elapidae,venomous,LC,ZSI-2025
+Hydrophis gracilis,Elapidae,venomous,LC,ZSI-2025
+Hydrophis lapemoides,Elapidae,venomous,LC,ZSI-2025
+Hydrophis mamillaris,Elapidae,venomous,DD,ZSI-2025
+Hydrophis melanosoma,Elapidae,venomous,LC,ZSI-2025
+Hydrophis nigrocinctus,Elapidae,venomous,LC,ZSI-2025
+Hydrophis obscurus,Elapidae,venomous,LC,ZSI-2025
+Hydrophis ornatus,Elapidae,venomous,LC,ZSI-2025
+Hydrophis platurus,Elapidae,venomous,LC,ZSI-2025
+Hydrophis schistosus,Elapidae,venomous,LC,ZSI-2025
+Hydrophis spiralis,Elapidae,venomous,LC,ZSI-2025
+Hydrophis stricticollis,Elapidae,venomous,LC,ZSI-2025
+Hydrophis viperinus,Elapidae,venomous,LC,ZSI-2025
+Laticauda colubrina,Elapidae,venomous,LC,ZSI-2025
+Laticauda laticaudata,Elapidae,venomous,LC,ZSI-2025
+Microcephalophis cantoris,Elapidae,venomous,LC,ZSI-2025
+Microcephalophis gracilis,Elapidae,venomous,LC,ZSI-2025
+Naja kaouthia,Elapidae,venomous,LC,ZSI-2025
+Naja naja,Elapidae,venomous,LC,ZSI-2025
+Naja oxiana,Elapidae,venomous,NT,ZSI-2025
+Naja sagittifera,Elapidae,venomous,LC,ZSI-2025
+Ophiophagus hannah,Elapidae,venomous,VU,ZSI-2025
+Ophiophagus kaalinga,Elapidae,venomous,NE,ZSI-2025
+Sinomicrurus gorei,Elapidae,venomous,LC,ZSI-2025
+Sinomicrurus macclellandi macclellandi,Elapidae,venomous,LC,ZSI-2025
+Sinomicrurus macclellandi univirgatus,Elapidae,venomous,LC,ZSI-2025
+Sinomicrurus peinani,Elapidae,venomous,NE,ZSI-2025
+Thalassophina viperina,Elapidae,venomous,LC,ZSI-2025
+Craspedocephalus anamallensis,Viperidae,venomous,LC,ZSI-2025
+Craspedocephalus andersonii,Viperidae,venomous,LC,ZSI-2025
+Craspedocephalus borneensis,Viperidae,venomous,LC,ZSI-2025
+Craspedocephalus gramineus,Viperidae,venomous,LC,ZSI-2025
+Craspedocephalus macrolepis,Viperidae,venomous,NT,ZSI-2025
+Craspedocephalus malabaricus,Viperidae,venomous,LC,ZSI-2025
+Craspedocephalus occidentalis,Viperidae,venomous,NE,ZSI-2025
+Craspedocephalus peltopelor,Viperidae,venomous,NE,ZSI-2025
+Craspedocephalus strigatus,Viperidae,venomous,LC,ZSI-2025
+Craspedocephalus travancoricus,Viperidae,venomous,NE,ZSI-2025
+Daboia russelii,Viperidae,venomous,LC,ZSI-2025
+Echis carinatus carinatus,Viperidae,venomous,LC,ZSI-2025
+Echis carinatus sochureki,Viperidae,venomous,LC,ZSI-2025
+Gloydius himalayanus,Viperidae,venomous,LC,ZSI-2025
+Hypnale hypnale,Viperidae,venomous,LC,ZSI-2025
+Hypnale zara,Viperidae,venomous,LC,ZSI-2025
+Macrovipera lebetina,Viperidae,venomous,LC,ZSI-2025
+Ovophis monticola,Viperidae,venomous,LC,ZSI-2025
+Protobothrops erythrurus,Viperidae,venomous,LC,ZSI-2025
+Protobothrops himalayanus,Viperidae,venomous,NE,ZSI-2025
+Protobothrops jerdonii,Viperidae,venomous,LC,ZSI-2025
+Protobothrops kaulbacki,Viperidae,venomous,LC,ZSI-2025
+Protobothrops mucrosquamatus,Viperidae,venomous,LC,ZSI-2025
+Trimeresurus albolabris,Viperidae,venomous,LC,ZSI-2025
+Trimeresurus cantori,Viperidae,venomous,VU,ZSI-2025
+Trimeresurus erythrurus,Viperidae,venomous,LC,ZSI-2025
+Trimeresurus fasciatus,Viperidae,venomous,DD,ZSI-2025
+Trimeresurus gumprechti,Viperidae,venomous,LC,ZSI-2025
+Trimeresurus labialis,Viperidae,venomous,LC,ZSI-2025
+Trimeresurus mayaae,Viperidae,venomous,NE,ZSI-2025
+Trimeresurus medoensis,Viperidae,venomous,LC,ZSI-2025
+Trimeresurus popeiorum,Viperidae,venomous,LC,ZSI-2025
+Trimeresurus purpureomaculatus,Viperidae,venomous,LC,ZSI-2025
+Trimeresurus salazar,Viperidae,venomous,NE,ZSI-2025
+Trimeresurus septentrionalis,Viperidae,venomous,LC,ZSI-2025
