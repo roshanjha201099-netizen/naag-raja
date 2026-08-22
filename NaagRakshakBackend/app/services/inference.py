@@ -118,17 +118,32 @@ class MLInferenceEngine:
             idx = int(idx)
             scientific_name = self.idx_to_class.get(idx, f"Species_{idx}")
             prob = float(probs[idx])
-            meta = self.snake_info_db.get(scientific_name, {})
+            
+            # Robust Metadata Lookup (Exact or Prefix Subspecies match)
+            meta = self.snake_info_db.get(scientific_name)
+            if not meta:
+                # Search for subspecies starting with the scientific name (e.g. Echis carinatus carinatus)
+                for k, v in self.snake_info_db.items():
+                    if str(k).startswith(scientific_name) or str(scientific_name).startswith(str(k)):
+                        meta = v
+                        break
+            if not meta:
+                meta = {}
+
+            venom_status = str(meta.get("venomous_status", "")).lower()
+            is_venomous = venom_status in ["venomous", "highly venomous", "true"]
+            is_medically_sig = venom_status in ["highly venomous", "true"] or "viper" in scientific_name.lower() or "cobra" in meta.get("common_name", "").lower() or "krait" in meta.get("common_name", "").lower()
 
             top_k_candidates.append({
                 "species_id": idx + 1,
                 "scientific_name": scientific_name,
                 "common_name": meta.get("common_name", scientific_name),
+                "hindi_name": meta.get("hindi_name", None),
                 "family": meta.get("family", "Unknown"),
                 "raw_probability": float(np.round(prob, 4)),
-                "calibrated_confidence": float(np.round(prob * 0.97, 4)), # Calibrated score
-                "venomous": str(meta.get("venomous_status", "")).lower() in ["venomous", "highly venomous", "true"],
-                "medically_significant": str(meta.get("venomous_status", "")).lower() in ["highly venomous", "true"]
+                "calibrated_confidence": float(np.round(prob * 0.97, 4)),
+                "venomous": is_venomous,
+                "medically_significant": is_medically_sig
             })
 
         # Uncertainty & Abstention Threshold Gate

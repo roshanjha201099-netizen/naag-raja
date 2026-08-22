@@ -27,6 +27,34 @@ SAMPLE_FACILITIES = [
     },
     {
         "id": "hosp_bh_02",
+        "name": "NMCH Patna (Nalanda Medical College)",
+        "type": "Govt Medical College",
+        "state": "Bihar",
+        "district": "Patna",
+        "address": "Kankarbagh Main Rd, Patna, Bihar 800020",
+        "phone": "+91 612 235 4828",
+        "asv_available": True,
+        "icu_facility": True,
+        "ventilator_count": 20,
+        "latitude": 25.5960,
+        "longitude": 85.1760
+    },
+    {
+        "id": "hosp_bh_03",
+        "name": "AIIMS Patna Emergency Toxicology",
+        "type": "Central Govt Apex Institute",
+        "state": "Bihar",
+        "district": "Patna",
+        "address": "Phulwari Sharif, Patna, Bihar 801507",
+        "phone": "+91 612 245 1070",
+        "asv_available": True,
+        "icu_facility": True,
+        "ventilator_count": 45,
+        "latitude": 25.5604,
+        "longitude": 85.0456
+    },
+    {
+        "id": "hosp_bh_04",
         "name": "Sadar Hospital Madhubani",
         "type": "District Headquarter Hospital",
         "state": "Bihar",
@@ -80,6 +108,20 @@ SAMPLE_FACILITIES = [
         "ventilator_count": 35,
         "latitude": 19.0016,
         "longitude": 72.8427
+    },
+    {
+        "id": "hosp_dl_01",
+        "name": "AIIMS New Delhi Emergency Department",
+        "type": "Central Govt Apex Institute",
+        "state": "Delhi",
+        "district": "New Delhi",
+        "address": "Sri Aurobindo Marg, Ansari Nagar, New Delhi",
+        "phone": "+91 11 2658 8500",
+        "asv_available": True,
+        "icu_facility": True,
+        "ventilator_count": 50,
+        "latitude": 28.5672,
+        "longitude": 77.2100
     }
 ]
 

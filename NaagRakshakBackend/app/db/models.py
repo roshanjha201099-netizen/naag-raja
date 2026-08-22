@@ -93,3 +93,19 @@ class PredictionLog(Base):
     safety_level = Column(String(32), nullable=False)
     processing_time_ms = Column(Float, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+class SnakeSighting(Base):
+    __tablename__ = "snake_sightings"
+
+    id = Column(String(64), primary_key=True, default=lambda: str(uuid.uuid4()))
+    species_name = Column(String(256), nullable=True)
+    scientific_name = Column(String(256), nullable=True)
+    safety_level = Column(String(32), nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    state = Column(String(64), nullable=True, index=True)
+    district = Column(String(64), nullable=True)
+    notes = Column(Text, nullable=True)
+    image_reference = Column(String(512), nullable=True)
+    verified = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

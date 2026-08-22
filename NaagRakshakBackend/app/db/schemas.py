@@ -120,6 +120,7 @@ class MedicalFacilitySchema(BaseModel):
     ventilator_count: int
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    distance_km: Optional[float] = None
 
     class Config:
         from_attributes = True
@@ -143,3 +144,30 @@ class HealthResponse(BaseModel):
     model_loaded: bool
     class_count: int
     uptime_seconds: float
+
+class SnakeSightingCreateSchema(BaseModel):
+    species_name: Optional[str] = None
+    scientific_name: Optional[str] = None
+    safety_level: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    state: Optional[str] = None
+    district: Optional[str] = None
+    notes: Optional[str] = None
+    image_reference: Optional[str] = None
+
+class SnakeSightingResponseSchema(BaseModel):
+    id: str
+    species_name: Optional[str] = None
+    scientific_name: Optional[str] = None
+    safety_level: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    state: Optional[str] = None
+    district: Optional[str] = None
+    notes: Optional[str] = None
+    verified: bool = False
+    created_at: Optional[str] = None
+
+    class Config:
+        from_attributes = True
