@@ -13,6 +13,7 @@ class SafetyLevelEnum(str, Enum):
     HIGH = "HIGH"
     CAUTION = "CAUTION"
     LOW = "LOW"
+    SAFE = "SAFE"
     NONE = "NONE"
 
 class IdentificationStatusEnum(str, Enum):
@@ -62,16 +63,104 @@ class ModelMetaSchema(BaseModel):
     image_quality_score: float
     processing_time_ms: float
 
+class MedicalFacilitySchema(BaseModel):
+    id: str
+    name: str
+    type: str
+    state: str
+    district: str
+    address: str
+    phone: str
+    asv_available: bool
+    icu_facility: bool
+    ventilator_count: int
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    distance_km: Optional[float] = None
+
+    class Config:
+        from_attributes = True
+
+class LocationPayloadSchema(BaseModel):
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    accuracy_meters: Optional[float] = None
+    display_name: str = "Bihar, India"
+    district: Optional[str] = None
+    state: str = "Bihar"
+    country: str = "India"
+    region: str = "Bihar"
+    source: str = "GPS"  # "GPS" or "MANUAL_GEOCODED"
+    status: str = "ACCURATE"  # "ACCURATE", "LOW_ACCURACY", "MANUAL"
+
+class AlternativeSpeciesSchema(BaseModel):
+    name: str
+    probability_percent: int
+
+class IdentificationPayloadSchema(BaseModel):
+    common_name: str
+    local_name: Optional[str] = None
+    scientific_name: str
+    confidence_percent: int
+    status: str
+    requires_expert_verification: bool = False
+    snake_detection_confidence: int = 95
+    alternatives: List[AlternativeSpeciesSchema] = []
+
+class SafetyPayloadSchema(BaseModel):
+    level: str
+    assume_potentially_venomous: bool = True
+    message: str
+    actions: List[str] = []
+
+class RescueFacilitySchema(BaseModel):
+    id: str
+    name: str
+    organization: str
+    state: str
+    district: Optional[str] = None
+    phone: str
+    response_hours: str
+
+    class Config:
+        from_attributes = True
+
+class RescuePayloadSchema(BaseModel):
+    contacts: List[RescueFacilitySchema] = []
+
+class MedicalPayloadSchema(BaseModel):
+    nearest_facility: Optional[MedicalFacilitySchema] = None
+
+class VoiceAlertPayloadSchema(BaseModel):
+    language: str = "hi-IN"
+    text: Optional[str] = None
+    audio_base64: Optional[str] = None
+
 class PredictResponse(BaseModel):
     request_id: str
     snake_detected: bool
     detection_confidence: float
+    snake_detection_confidence: Optional[float] = None
+    species_classification_probability: Optional[float] = None
+    overall_identification_confidence: Optional[float] = None
     bounding_box: Optional[BoundingBoxSchema] = None
     identification_status: IdentificationStatusEnum
-    predictions: List[SpeciesPredictionSchema]
+    prediction: Optional[SpeciesPredictionSchema] = None
+    predictions_list: List[SpeciesPredictionSchema] = []
+    predictions: List[SpeciesPredictionSchema] = []
     safety: SafetySchema
     contextual_guidance: ContextualGuidanceSchema
+    nearest_hospital: Optional[MedicalFacilitySchema] = None
     model_meta: ModelMetaSchema
+
+    # Clean Backend-to-Frontend Unified Payload
+    location: Optional[LocationPayloadSchema] = None
+    identification: Optional[IdentificationPayloadSchema] = None
+    safety_payload: Optional[SafetyPayloadSchema] = None
+    intent: Optional[str] = "SNAKE_ENCOUNTER"
+    rescue: Optional[RescuePayloadSchema] = None
+    medical: Optional[MedicalPayloadSchema] = None
+    voice_alert: Optional[VoiceAlertPayloadSchema] = None
 
 class RegionalNameSchema(BaseModel):
     hindi: Optional[str] = None
@@ -103,36 +192,6 @@ class SpeciesDetailResponse(BaseModel):
     safety_message: Optional[str] = None
     regional_names: Optional[Dict[str, str]] = None
     lookalikes: List[Dict[str, str]] = []
-
-    class Config:
-        from_attributes = True
-
-class MedicalFacilitySchema(BaseModel):
-    id: str
-    name: str
-    type: str
-    state: str
-    district: str
-    address: str
-    phone: str
-    asv_available: bool
-    icu_facility: bool
-    ventilator_count: int
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
-    distance_km: Optional[float] = None
-
-    class Config:
-        from_attributes = True
-
-class RescueFacilitySchema(BaseModel):
-    id: str
-    name: str
-    organization: str
-    state: str
-    district: Optional[str] = None
-    phone: str
-    response_hours: str
 
     class Config:
         from_attributes = True

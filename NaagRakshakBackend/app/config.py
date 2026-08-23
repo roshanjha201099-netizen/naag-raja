@@ -19,6 +19,8 @@ class Settings(BaseSettings):
 
     # API Keys
     OPENAI_API_KEY: str = ""
+    GEMINI_API_KEY: str = "AIzaSyCveuSoCKUbUIQbvHm-A7Y0ZcgUMq9sd40"
+    VERTEX_CREDENTIALS_PATH: str = "keys/demo-other-vertext.json"
     GOOGLE_SEARCH_API_KEY: str = ""
     SARVAM_API_KEY: str = "sk_i3a2823s_F10bhgrSZaMkKubyXNXUPh9P"
     SARVAM_TTS_URL: str = "https://api.sarvam.ai/text-to-speech"

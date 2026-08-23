@@ -21,7 +21,6 @@ router = APIRouter()
 
 @router.post("/predict", response_model=PredictResponse)
 async def predict_snake(
-    images: Optional[List[UploadFile]] = File(None, description="Multiple snake specimen field image files (up to 5)"),
     image: Optional[UploadFile] = File(None, description="Single snake specimen field image file (JPEG, PNG, WEBP)"),
     image_base64: Optional[str] = Form(None, description="Base64 encoded image string"),
     intent: Optional[str] = Form("SNAKE_ENCOUNTER", description="User field intent enum"),
@@ -29,6 +28,9 @@ async def predict_snake(
     language_code: Optional[str] = Form("hi-IN", description="Regional language code"),
     user_lat: Optional[float] = Form(None, description="User latitude"),
     user_lng: Optional[float] = Form(None, description="User longitude"),
+    user_accuracy: Optional[float] = Form(None, description="GPS Accuracy in meters"),
+    location_source: Optional[str] = Form(None, description="Source of location data"),
+    location_status: Optional[str] = Form(None, description="Status of location services"),
     db: AsyncSession = Depends(get_db)
 ):
     start_time = time.time()
@@ -54,47 +56,41 @@ async def predict_snake(
     except ValueError:
         intent_enum = IntentEnum.SNAKE_ENCOUNTER
 
-    # 1. Read & Validate Binary Stream(s) or Base64 String (Up to 5 images)
-    images_to_process = []
-    if images and len(images) > 0:
-        for img_file in images[:5]:
-            try:
-                b = await img_file.read()
-                if b and len(b) > 0:
-                    pil_img = ImageValidationService.validate_image_stream(b)
-                    images_to_process.append(pil_img)
-            except Exception as e:
-                logger.warning(f"Could not parse image file in multi-upload: {e}")
-    
-    if not images_to_process and image:
+    # Print Formatted Incoming Frontend Request Payload
+    has_image = "Yes (Binary stream)" if image else ("Yes (Base64)" if image_base64 else "No")
+    print("\n" + "="*75)
+    print(f">> [FRONTEND REQUEST RECEIVED] POST /api/v1/predict (Request ID: {req_id})")
+    print("="*75)
+    print(f"  * User Intent:         '{intent}' -> Parsed as: {intent_enum.value}")
+    print(f"  * Indian State/Region: '{state}'")
+    print(f"  * Language Code:       '{language_code}' (TTS Language: {lang_clean})")
+    print(f"  * GPS Latitude:        {user_lat if user_lat is not None else 'None (Manual Location)'}")
+    print(f"  * GPS Longitude:       {user_lng if user_lng is not None else 'None (Manual Location)'}")
+    print(f"  * GPS Accuracy:        {str(user_accuracy) + ' meters' if user_accuracy is not None else 'None'}")
+    print(f"  * Specimen Image:      {has_image}")
+    print("="*75 + "\n")
+
+    # 1. Read & Validate Binary Stream or Base64 String
+    pil_img = None
+    if image:
         try:
             file_bytes = await image.read()
             pil_img = ImageValidationService.validate_image_stream(file_bytes)
-            images_to_process.append(pil_img)
         except Exception as e:
             logger.warning(f"Could not parse single image file: {e}")
 
-    if not images_to_process and image_base64:
+    if not pil_img and image_base64:
         pil_img = ImageValidationService.validate_image_stream(image_base64)
-        images_to_process.append(pil_img)
 
-    if not images_to_process:
+    if not pil_img:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="At least one valid image file (or 'images' array up to 5) must be provided."
+            detail="A valid image file (or image_base64) must be provided."
         )
 
-    # 2 & 3. Process Multi-Image Inference Pipeline (Multi-View Ensemble)
-    results = []
-    for pil_img in images_to_process:
-        q_score = ImageQualityAnalyzer.analyze_quality(pil_img)
-        res = ml_engine.predict(pil_img, q_score)
-        results.append((res, q_score))
-
-    # Rank results by quality & detection confidence to pick top visual specimen
-    results.sort(key=lambda x: (x[0].get("detection_confidence", 0.95) * x[1]), reverse=True)
-    ml_result = results[0][0]
-    quality_score = results[0][1]
+    # 2 & 3. Process Single Image Inference Pipeline
+    quality_score = ImageQualityAnalyzer.analyze_quality(pil_img)
+    ml_result = ml_engine.predict(pil_img, quality_score)
 
     # 4. Location-Aware Bayesian Ranking
     top_k_candidates = ml_result.get("top_k", [])
@@ -127,11 +123,12 @@ async def predict_snake(
             asv_only=True,
             user_lat=user_lat,
             user_lng=user_lng,
+            user_accuracy=user_accuracy,
             db=db
         )
         if hospitals and len(hospitals) > 0:
             nearest_hosp_name = hospitals[0].name
-            nearest_hosp_dist = hospitals[0].distance_km if hospitals[0].distance_km is not None else 5.0
+            nearest_hosp_dist = hospitals[0].distance_km
     except Exception as ex:
         logger.warning(f"Could not query nearest hospital for explainer: {ex}")
 
@@ -174,8 +171,18 @@ async def predict_snake(
     except Exception as e:
         logger.warning(f"Failed to record prediction log to DB: {e}")
 
+    # 6.5 Query Verified Rescue Helplines & Facilities
+    rescue_facilities_list = []
+    try:
+        from app.api.endpoints.rescue import get_rescue_facilities
+        rescue_facilities_list = await get_rescue_facilities(state=state, user_lat=user_lat, user_lng=user_lng, db=db)
+    except Exception as ex:
+        logger.warning(f"Could not query rescue facilities: {ex}")
+
+    nearest_hosp_obj = hospitals[0] if (hospitals and len(hospitals) > 0) else None
+
     # 9. Compose Intent-Driven Response
-    return ResponseComposerService.compose_response(
+    res_obj = ResponseComposerService.compose_response(
         request_id=req_id,
         ml_result=ml_result,
         ranked_predictions=ranked_candidates,
@@ -188,3 +195,35 @@ async def predict_snake(
         audio_base64=audio_base64,
         language_code=lang_clean
     )
+    
+    # Dynamic Location Payload Contract
+    computed_source = location_source or ("MANUAL_GEOCODED" if user_lat is not None and user_accuracy is None else "GPS")
+    if user_accuracy is not None and user_accuracy <= 5000:
+        computed_status = "ACCURATE"
+    elif computed_source == "MANUAL_GEOCODED":
+        computed_status = "MANUAL"
+    elif user_lat is not None:
+        computed_status = "LOW_ACCURACY"
+    else:
+        computed_status = "LOW_ACCURACY"
+
+    from app.db.schemas import LocationPayloadSchema
+    res_obj.location = LocationPayloadSchema(
+        latitude=user_lat,
+        longitude=user_lng,
+        accuracy_meters=user_accuracy,
+        display_name=f"{state or 'Bihar'}, India",
+        district=None,
+        state=state or "Bihar",
+        country="India",
+        region=state or "Bihar",
+        source=computed_source,
+        status=computed_status
+    )
+
+    res_obj.nearest_hospital = nearest_hosp_obj
+    if res_obj.medical:
+        res_obj.medical.nearest_facility = nearest_hosp_obj
+    if res_obj.rescue:
+        res_obj.rescue.contacts = rescue_facilities_list[:3]
+    return res_obj

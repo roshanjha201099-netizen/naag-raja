@@ -15,6 +15,15 @@ async def report_sighting(
     sighting: SnakeSightingCreateSchema,
     db: AsyncSession = Depends(get_db)
 ):
+    print("\n" + "="*75)
+    print(">> [FRONTEND SIGHTING REPORT RECEIVED] POST /api/v1/sightings")
+    print("="*75)
+    print(f"  * Species:             '{sighting.species_name}' ({sighting.scientific_name})")
+    print(f"  * Safety Level:        '{sighting.safety_level}'")
+    print(f"  * Location:            State='{sighting.state}', District='{sighting.district}'")
+    print(f"  * GPS Coordinates:     Lat={sighting.latitude}, Lng={sighting.longitude}")
+    print(f"  * Field Notes:         '{sighting.notes}'")
+    print("="*75 + "\n")
     sighting_id = str(uuid.uuid4())
     new_sighting = SnakeSighting(
         id=sighting_id,

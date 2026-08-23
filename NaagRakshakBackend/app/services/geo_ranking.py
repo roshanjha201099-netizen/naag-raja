@@ -2,9 +2,9 @@ from typing import List, Dict, Any, Optional
 
 OCCURRENCE_MULTIPLIERS = {
     "PRESENT_ABUNDANT": 1.00,
-    "PRESENT_COMMON": 0.85,
-    "PRESENT_RARE": 0.50,
-    "UNRECORDED": 0.15
+    "PRESENT_COMMON": 1.00,
+    "PRESENT_RARE": 0.85,
+    "UNRECORDED": 0.50
 }
 
 class LocationAwareRankingService:
@@ -16,30 +16,29 @@ class LocationAwareRankingService:
         if not state or state == "All Regions / Nationwide":
             for p in predictions:
                 p["regional_presence"] = "COMMON"
+                p["calibrated_confidence"] = float(round(p.get("raw_probability", 0.0), 4))
             return predictions
 
         adjusted_list = []
-        alpha = 1.0
-        beta = 0.25
 
         for p in predictions:
-            raw_p = p["raw_probability"]
+            raw_p = float(p.get("raw_probability", 0.0))
             is_medically_significant = p.get("medically_significant", False)
+            sci_name = p.get("scientific_name", "")
 
-            # Look up regional frequency (Defaulting to COMMON for known species)
+            # Default occurrence frequency for native Indian species
             freq_str = "PRESENT_COMMON"
-            if "Bihar" in state and p["scientific_name"] in ["Daboia russelii", "Echis carinatus"]:
-                freq_str = "PRESENT_RARE"
-            elif "Bihar" in state and p["scientific_name"] in ["Bungarus caeruleus", "Naja naja"]:
+            
+            # Big Four venomous species are abundant/common across all Indian states
+            BIG_FOUR = ["Naja naja", "Daboia russelii", "Bungarus caeruleus", "Echis carinatus"]
+            if sci_name in BIG_FOUR:
                 freq_str = "PRESENT_ABUNDANT"
 
-            prior_multiplier = OCCURRENCE_MULTIPLIERS.get(freq_str, 0.85)
+            prior_multiplier = OCCURRENCE_MULTIPLIERS.get(freq_str, 1.0)
+            adjusted_score = raw_p * prior_multiplier
 
-            # Apply Damped Bayesian Shift
-            adjusted_score = (raw_p ** alpha) * (prior_multiplier ** beta)
-
-            # SAFETY OVERRIDE RULE: High visual certainty (> 0.85) of medically significant species CANNOT be suppressed
-            if is_medically_significant and raw_p >= 0.85:
+            # Medically significant species keep their raw model probability
+            if is_medically_significant:
                 adjusted_score = max(adjusted_score, raw_p)
 
             p_copy = dict(p)

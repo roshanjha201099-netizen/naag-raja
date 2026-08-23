@@ -15,13 +15,22 @@ class DeterministicSafetyEngine:
         is_bite_intent = "BITE" in intent_upper
 
         # Rule 1: Fail-Safe Mode for Uncertain / Unable to Identify Status
+        if identification_status == "NO_SNAKE_DETECTED" and not is_bite_intent:
+            return SafetySchema(
+                safety_level=SafetyLevelEnum.SAFE,
+                venomous=False,
+                medically_significant=False,
+                antivenom_recommended=False,
+                safety_message="NO SNAKE DETECTED (YOU ARE SAFE): No snake was detected in the uploaded image. Disclaimer: If a snake is hidden in foliage or you require expert verification, please upload a clearer photo or contact a certified local rescuer."
+            )
+
         if identification_status in ["UNABLE_TO_IDENTIFY", "NO_SNAKE_DETECTED"]:
             return SafetySchema(
                 safety_level=SafetyLevelEnum.CAUTION if not is_bite_intent else SafetyLevelEnum.CRITICAL,
                 venomous=False,
                 medically_significant=False,
                 antivenom_recommended=is_bite_intent,
-                safety_message="SNAKE BITE EMERGENCY ALERT: Species could not be visually confirmed with 100% certainty. Keep patient completely still and rush immediately to the nearest ASV Hospital." if is_bite_intent else "CAUTION: Species could not be identified with high visual certainty. Assume snake is potentially venomous. Maintain a safe standoff distance (15+ feet) and do not attempt to capture or touch."
+                safety_message="SNAKE BITE EMERGENCY ALERT: Species could not be visually confirmed with 100% certainty. Keep patient completely still and rush immediately to the nearest ASV Hospital." if is_bite_intent else "CAUTION: Species could not be identified with high visual certainty. Maintain a safe standoff distance (15+ feet) and do not attempt to capture or touch."
             )
 
         common_name = top_prediction.get("common_name", "Unknown Species")

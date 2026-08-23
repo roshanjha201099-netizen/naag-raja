@@ -2,7 +2,9 @@ from typing import Dict, Any, List, Optional
 from app.db.schemas import (
     PredictResponse, BoundingBoxSchema, SpeciesPredictionSchema,
     SafetySchema, ContextualGuidanceSchema, ProtocolSchema, ModelMetaSchema,
-    IntentEnum, IdentificationStatusEnum
+    IntentEnum, IdentificationStatusEnum, LocationPayloadSchema, IdentificationPayloadSchema,
+    AlternativeSpeciesSchema, SafetyPayloadSchema, RescuePayloadSchema, MedicalPayloadSchema,
+    VoiceAlertPayloadSchema
 )
 
 class ResponseComposerService:
@@ -83,16 +85,108 @@ class ResponseComposerService:
             processing_time_ms=processing_time_ms
         )
 
-        bbox = BoundingBoxSchema(**ml_result.get("bounding_box", {"x_min": 0, "y_min": 0, "x_max": 224, "y_max": 224}))
+        bbox = BoundingBoxSchema(**ml_result.get("bounding_box", {"x_min": 0, "y_min": 0, "x_max": 224, "y_max": 224})) if ml_result.get("bounding_box") else None
+        
+        det_conf = float(ml_result.get("detection_confidence", 0.0))
+        top_prob = float(pred_schemas[0].calibrated_confidence) if pred_schemas else 0.0
+        overall_conf = float(round(det_conf * top_prob, 4)) if pred_schemas else 0.0
+
+        top_prediction_schema = pred_schemas[0] if pred_schemas else None
+
+        # Build Clean Field-First Emergency Payload Structures
+        loc_payload = LocationPayloadSchema(region=state or "Bihar")
+        
+        alternatives_list = [
+            AlternativeSpeciesSchema(
+                name=f"{p['common_name']} ({p['scientific_name']})",
+                probability_percent=int(round(p['calibrated_confidence'] * 100))
+            )
+            for p in ranked_predictions[1:5]
+        ] if len(ranked_predictions) > 1 else []
+
+        id_status_str = str(ml_result.get("identification_status", "HIGH_CONFIDENCE"))
+        snake_detected_bool = ml_result.get("snake_detected", True)
+
+        if not snake_detected_bool or id_status_str == "NO_SNAKE_DETECTED":
+            common_name_val = "No Snake Detected"
+            local_name_val = "कोई सांप नहीं मिला"
+            sci_name_val = "Non-Snake Image"
+            req_expert = True
+            safe_msg_val = "NO SNAKE DETECTED (YOU ARE SAFE): No snake was detected in the uploaded image. Disclaimer: If a snake is hidden in foliage or you require expert verification, please upload a clearer high-resolution photo or consult a certified local rescuer."
+        else:
+            top_rec = ranked_predictions[0] if ranked_predictions else {}
+            sci_name_val = top_rec.get("scientific_name", "Unknown Species")
+            c_name = top_rec.get("common_name")
+            if not c_name or c_name == "Unknown Species" or c_name == sci_name_val:
+                c_name = sci_name_val.replace("_", " ").title()
+            common_name_val = c_name
+            local_name_val = top_rec.get("hindi_name") or c_name
+            req_expert = id_status_str in ["UNABLE_TO_IDENTIFY", "MODERATE_CONFIDENCE"] or top_prob < 0.80
+            safe_msg_val = safety.safety_message
+
+        ident_payload = IdentificationPayloadSchema(
+            common_name=common_name_val,
+            local_name=local_name_val,
+            scientific_name=sci_name_val,
+            confidence_percent=int(round(top_prob * 100)) if snake_detected_bool else 0,
+            status=id_status_str,
+            requires_expert_verification=req_expert,
+            snake_detection_confidence=int(round(det_conf * 100)),
+            alternatives=alternatives_list
+        )
+
+        if intent == IntentEnum.SNAKE_BITE_EMERGENCY:
+            field_actions = [
+                "Keep victim calm and keep bitten limb completely still at heart level.",
+                "Do NOT apply tourniquets, ropes, tight bands, or cut/suck the bite wound.",
+                "Transport immediately to nearest ASV hospital."
+            ]
+        elif not snake_detected_bool or id_status_str == "NO_SNAKE_DETECTED":
+            field_actions = [
+                "Verify Surroundings: If you suspect a snake is hidden nearby in brush or tall grass, remain cautious.",
+                "Upload Clear Specimen Photo: Ensure the image clearly shows the snake's head or scale patterns for AI classification.",
+                "Request Expert Verification: Contact your local Wildlife Rescue Cell if uncertain about the encounter location."
+            ]
+        else:
+            field_actions = [
+                "Maintain a safe standoff distance of 15+ feet.",
+                "Do NOT touch, hit, corner, or attempt to capture the snake.",
+                "Keep eyes on snake location and contact an authorized rescuer or Forest Department."
+            ]
+
+        safe_payload = SafetyPayloadSchema(
+            level=safety.safety_level.value if snake_detected_bool else "SAFE",
+            assume_potentially_venomous=False if not snake_detected_bool else (safety.venomous or req_expert),
+            message=safe_msg_val,
+            actions=field_actions
+        )
+
+        v_alert = VoiceAlertPayloadSchema(
+            language=language_code,
+            text=llm_explanation,
+            audio_base64=audio_base64
+        )
 
         return PredictResponse(
             request_id=request_id,
             snake_detected=ml_result.get("snake_detected", True),
-            detection_confidence=ml_result.get("detection_confidence", 0.95),
+            detection_confidence=det_conf,
+            snake_detection_confidence=det_conf,
+            species_classification_probability=top_prob,
+            overall_identification_confidence=overall_conf,
             bounding_box=bbox,
             identification_status=IdentificationStatusEnum(ml_result.get("identification_status", "HIGH_CONFIDENCE")),
+            prediction=top_prediction_schema,
+            predictions_list=pred_schemas,
             predictions=pred_schemas,
             safety=safety,
             contextual_guidance=contextual,
-            model_meta=meta
+            model_meta=meta,
+            location=loc_payload,
+            identification=ident_payload,
+            safety_payload=safe_payload,
+            intent=intent.value if hasattr(intent, 'value') else str(intent),
+            rescue=RescuePayloadSchema(contacts=[]),
+            medical=MedicalPayloadSchema(nearest_facility=None),
+            voice_alert=v_alert
         )

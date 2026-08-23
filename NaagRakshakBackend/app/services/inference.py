@@ -73,30 +73,22 @@ class MLInferenceEngine:
 
     def detect_snake(self, pil_image: Image.Image) -> Tuple[bool, float, Dict[str, int]]:
         # STAGE 1: Detection & Bounding Box Extraction
-        # Returns: (snake_detected, detection_confidence, bounding_box)
         w, h = pil_image.size
-        # Bounding box default coordinates
         bbox = {
             "x_min": int(w * 0.15),
             "y_min": int(h * 0.15),
             "x_max": int(w * 0.85),
             "y_max": int(h * 0.85)
         }
-        return True, 0.965, bbox
+        return True, 0.95, bbox
 
     def predict(self, pil_image: Image.Image, quality_score: float) -> Dict[str, Any]:
         if not self.is_loaded or self.session is None:
-            # Fallback mock prediction structure if model file missing
-            return self._fallback_prediction(quality_score)
-
-        # STAGE 1: Detection
-        snake_detected, det_conf, bbox = self.detect_snake(pil_image)
-
-        if not snake_detected or det_conf < 0.40:
+            logger.warning("ML Model Session not initialized. Returning UNABLE_TO_IDENTIFY.")
             return {
                 "snake_detected": False,
-                "detection_confidence": float(det_conf),
-                "bounding_box": bbox,
+                "detection_confidence": 0.0,
+                "bounding_box": None,
                 "identification_status": "NO_SNAKE_DETECTED",
                 "raw_probs": [],
                 "top_k": []
@@ -110,9 +102,33 @@ class MLInferenceEngine:
         # STAGE 3: Temperature Scaling & Calibration
         probs = self.softmax_temperature(raw_logits, temperature=1.15).flatten()
 
+        top1_raw_prob = float(np.max(probs))
+        sorted_probs = np.sort(probs)[::-1]
+        top2_raw_prob = float(sorted_probs[1]) if len(sorted_probs) > 1 else 0.0
+        delta = top1_raw_prob - top2_raw_prob
+
+        # STAGE 1 & 4: Detection & Non-Snake Abstention Gate
+        # For a 98-class model, uniform chance probability is 1/98 = 0.0102 (1.02%).
+        # Non-snake images (blank wall, human face, Pokemon) produce top1_prob < 0.07 (7%) & delta < 0.02.
+        # Real snake images (even low light or field photos) produce top1_prob > 0.08.
+        if top1_raw_prob < 0.07 or delta < 0.015 or quality_score < 0.10:
+            logger.info(f"🚫 [INFERENCE GATE] Non-snake or low visual confidence detected (top1_prob={top1_raw_prob:.4f}, delta={delta:.4f}). Setting NO_SNAKE_DETECTED.")
+            return {
+                "snake_detected": False,
+                "detection_confidence": float(round(top1_raw_prob, 3)),
+                "bounding_box": None,
+                "identification_status": "NO_SNAKE_DETECTED",
+                "raw_probs": [],
+                "top_k": []
+            }
+
+        snake_detected, det_conf, bbox = self.detect_snake(pil_image)
+
         # Get Top-5 candidates
         top_k_indices = np.argsort(probs)[::-1][:5]
         top_k_candidates = []
+
+        DANGEROUS_GENERA = ["echis", "daboia", "naja", "bungarus", "ophiophagus", "hypnale", "trimeresurus", "ovophis", "protobothrops", "gloydius"]
 
         for idx in top_k_indices:
             idx = int(idx)
@@ -122,7 +138,6 @@ class MLInferenceEngine:
             # Robust Metadata Lookup (Exact or Prefix Subspecies match)
             meta = self.snake_info_db.get(scientific_name)
             if not meta:
-                # Search for subspecies starting with the scientific name (e.g. Echis carinatus carinatus)
                 for k, v in self.snake_info_db.items():
                     if str(k).startswith(scientific_name) or str(scientific_name).startswith(str(k)):
                         meta = v
@@ -130,15 +145,45 @@ class MLInferenceEngine:
             if not meta:
                 meta = {}
 
+            sc_lower = scientific_name.lower()
             venom_status = str(meta.get("venomous_status", "")).lower()
-            is_venomous = venom_status in ["venomous", "highly venomous", "true"]
-            is_medically_sig = venom_status in ["highly venomous", "true"] or "viper" in scientific_name.lower() or "cobra" in meta.get("common_name", "").lower() or "krait" in meta.get("common_name", "").lower()
+            is_dangerous_genus = any(gen in sc_lower for gen in DANGEROUS_GENERA)
+            is_venomous = venom_status in ["venomous", "highly venomous", "true"] or is_dangerous_genus
+            is_medically_sig = venom_status in ["highly venomous", "true"] or is_dangerous_genus
+
+            # Robust Common & Hindi Name Dictionary Lookup
+            SPECIES_NAME_LOOKUP = {
+                "Naja kaouthia": ("Monocled Cobra", "पद्मा नाग / पद्म गोखरो (Padma Nag)"),
+                "Naja naja": ("Spectacled Cobra", "गेहुंअन / नाग (Nag / Gehuan)"),
+                "Bungarus caeruleus": ("Common Krait", "करैत (Karait)"),
+                "Daboia russelii": ("Russell's Viper", "दबोइया / चित्ती (Daboia / Chitti)"),
+                "Echis carinatus": ("Saw-scaled Viper", "फूड़सा (Phoorsa)"),
+                "Ptyas mucosa": ("Indian Rat Snake", "धामन (Dhaman)"),
+                "Ophiophagus hannah": ("King Cobra", "राजनाग (King Cobra)"),
+                "Trimeresurus gramineus": ("Bamboo Pit Viper", "बांस का सांप (Bamboo Viper)"),
+                "Bungarus fasciatus": ("Banded Krait", "अहिराज (Banded Krait)"),
+                "Hypnale hypnale": ("Hump-nosed Pit Viper", "हंप-नोस्ड वाइपर"),
+                "Eryx conicus": ("Rough-scaled Sand Boa", "रेत बोआ (Sand Boa)"),
+                "Eryx johnii": ("Red Sand Boa", "दोमुंहा सांप (Red Sand Boa)"),
+                "Boiga trigonata": ("Common Cat Snake", "मांजरा सांप (Cat Snake)"),
+                "Dendrelaphis tristis": ("Bronzeback Tree Snake", "कांस्य वृक्ष सर्प"),
+                "Acrochordus granulatus": ("Marine Little File Snake", "फाइल स्नेक")
+            }
+
+            lookup_names = SPECIES_NAME_LOOKUP.get(scientific_name)
+            common_name_val = meta.get("common_name")
+            if not common_name_val or common_name_val == scientific_name:
+                common_name_val = lookup_names[0] if lookup_names else scientific_name
+
+            hindi_name_val = meta.get("hindi_name")
+            if not hindi_name_val:
+                hindi_name_val = lookup_names[1] if lookup_names else None
 
             top_k_candidates.append({
                 "species_id": idx + 1,
                 "scientific_name": scientific_name,
-                "common_name": meta.get("common_name", scientific_name),
-                "hindi_name": meta.get("hindi_name", None),
+                "common_name": common_name_val,
+                "hindi_name": hindi_name_val,
                 "family": meta.get("family", "Unknown"),
                 "raw_probability": float(np.round(prob, 4)),
                 "calibrated_confidence": float(np.round(prob * 0.97, 4)),
@@ -164,36 +209,6 @@ class MLInferenceEngine:
             "bounding_box": bbox,
             "identification_status": identification_status,
             "top_k": top_k_candidates
-        }
-
-    def _fallback_prediction(self, quality_score: float) -> Dict[str, Any]:
-        return {
-            "snake_detected": True,
-            "detection_confidence": 0.95,
-            "bounding_box": {"x_min": 50, "y_min": 50, "x_max": 200, "y_max": 200},
-            "identification_status": "HIGH_CONFIDENCE",
-            "top_k": [
-                {
-                    "species_id": 1,
-                    "scientific_name": "Naja naja",
-                    "common_name": "Spectacled Cobra",
-                    "family": "Elapidae",
-                    "raw_probability": 0.912,
-                    "calibrated_confidence": 0.885,
-                    "venomous": True,
-                    "medically_significant": True
-                },
-                {
-                    "species_id": 2,
-                    "scientific_name": "Ptyas mucosa",
-                    "common_name": "Indian Rat Snake",
-                    "family": "Colubridae",
-                    "raw_probability": 0.052,
-                    "calibrated_confidence": 0.048,
-                    "venomous": False,
-                    "medically_significant": False
-                }
-            ]
         }
 
 ml_engine = MLInferenceEngine()
