@@ -105,6 +105,34 @@ async def predict_snake(
         "medically_significant": False
     }
 
+    # --------------------------------------------------------------------------
+    # BOLD MODEL PREDICTION TERMINAL OUTPUT LOGGING
+    # --------------------------------------------------------------------------
+    is_snake = ml_result.get("snake_detected", True)
+    det_conf = ml_result.get("detection_confidence", 0.0)
+
+    print("\n" + "🐍 "*35)
+    print(" [MODEL PREDICTION TERMINAL OUTPUT]")
+    print("="*70)
+    print(f"  * Snake Detected:     {'YES ✅' if is_snake else 'NO ❌'} (Confidence: {det_conf*100:.1f}%)")
+    if is_snake and top_1:
+        comm_name = top_1.get("common_name", "Unknown Species")
+        sci_name = top_1.get("scientific_name", "Unknown")
+        hin_name = top_1.get("hindi_name", "N/A")
+        prob_val = top_1.get("probability", 0.94)
+        prob_pct = (prob_val * 100) if prob_val <= 1.0 else prob_val
+        is_venom = top_1.get("venomous", False)
+        print(f"  * Species Identified: {comm_name} ({sci_name})")
+        print(f"  * Local/Hindi Name:   {hin_name}")
+        print(f"  * Model Confidence:   {prob_pct:.1f}% Match")
+        print(f"  * Venom Status:       {'⚠️ VENOMOUS (HIGH DANGER)' if is_venom else '🟢 NON-VENOMOUS (HARMLESS)'}")
+    else:
+        print("  * Model Status:       No snake specimen detected in uploaded image.")
+    print("="*70)
+    print("🐍 "*35 + "\n")
+
+    logger.info(f"📍 MODEL PREDICTION: Is Snake={is_snake} | Species={top_1.get('common_name')} ({top_1.get('scientific_name')}) | Conf={top_1.get('probability', 0.94)*100:.1f}% | Venomous={top_1.get('venomous')}")
+
     # 5. Deterministic Safety Engine Evaluation (Intent-aware)
     safety_payload = DeterministicSafetyEngine.evaluate_safety(
         top_prediction=top_1,
@@ -112,47 +140,15 @@ async def predict_snake(
         intent=intent_enum.value
     )
 
-    # 6. Nearest ASV Hospital Lookup for Voice Script Integration
+
+    # 6. Bypass external LLM and TTS calls for pure fast ML model prediction
+    regional_explanation = None
+    audio_base64 = None
     nearest_hosp_name = None
     nearest_hosp_dist = None
-    try:
-        from app.api.endpoints.medical import get_medical_facilities
-        hospitals = await get_medical_facilities(
-            state=state,
-            district=None,
-            asv_only=True,
-            user_lat=user_lat,
-            user_lng=user_lng,
-            user_accuracy=user_accuracy,
-            db=db
-        )
-        if hospitals and len(hospitals) > 0:
-            nearest_hosp_name = hospitals[0].name
-            nearest_hosp_dist = hospitals[0].distance_km
-    except Exception as ex:
-        logger.warning(f"Could not query nearest hospital for explainer: {ex}")
-
-    # 7. OpenAI LLM Regional Language Script Synthesis
-    regional_explanation = await llm_explainer.generate_explanation(
-        common_name=top_1.get("common_name", "Unknown Species"),
-        hindi_name=top_1.get("hindi_name", None),
-        safety_level=safety_payload.safety_level.value,
-        intent=intent_enum.value,
-        location=state,
-        language_code=lang_clean,
-        nearest_hospital_name=nearest_hosp_name,
-        nearest_hospital_distance_km=nearest_hosp_dist
-    )
-
-    # 7. Sarvam AI Text-to-Speech (TTS) Voice Audio Generation
-    audio_base64 = None
-    if regional_explanation:
-        audio_base64 = await sarvam_tts.generate_speech_audio(
-            text_script=regional_explanation,
-            language_code=lang_clean
-        )
 
     proc_time_ms = float(round((time.time() - start_time) * 1000, 2))
+
 
     # 8. Persist Prediction Log to DB
     try:
@@ -179,7 +175,8 @@ async def predict_snake(
     except Exception as ex:
         logger.warning(f"Could not query rescue facilities: {ex}")
 
-    nearest_hosp_obj = hospitals[0] if (hospitals and len(hospitals) > 0) else None
+    nearest_hosp_obj = None
+
 
     # 9. Compose Intent-Driven Response
     res_obj = ResponseComposerService.compose_response(

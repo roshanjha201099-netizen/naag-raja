@@ -122,6 +122,8 @@ class MLInferenceEngine:
                 "top_k": []
             }
 
+
+
         snake_detected, det_conf, bbox = self.detect_snake(pil_image)
 
         # Get Top-5 candidates

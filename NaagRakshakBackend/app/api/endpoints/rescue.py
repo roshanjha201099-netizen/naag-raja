@@ -14,49 +14,10 @@ router = APIRouter()
 
 async def fetch_realtime_gis_rescuers(lat: float, lon: float, state_name: Optional[str] = None) -> List[RescueFacilitySchema]:
     """
-    Queries live OpenStreetMap Nominatim GIS for real-time Forest Dept Range Offices, Fire & Rescue Stations, and Wildlife Emergency squads around user GPS.
+    Disabled external OpenStreetMap network calls for fast local execution.
     """
-    headers = {
-        "User-Agent": "NaagRakshak/1.0 (India Emergency Snakebite App; contact@naagrakshak.org)"
-    }
-    gis_rescuers = []
-    
-    # Try Nominatim GIS queries for forest department and emergency rescue dispatch
-    search_terms = ["forest", "fire station", "rescue"]
-    seen_ids = set()
+    return []
 
-    try:
-        async with httpx.AsyncClient(timeout=6.0) as client:
-            for term in search_terms:
-                url = f"https://nominatim.openstreetmap.org/search?q={term}&format=json&lat={lat}&lon={lon}&bounded=1&viewbox={lon-0.45},{lat+0.45},{lon+0.45},{lat-0.45}&limit=5"
-                try:
-                    res = await client.get(url, headers=headers)
-                    if res.status_code == 200:
-                        items = res.json()
-                        for idx, item in enumerate(items):
-                            full_name = item.get("display_name", "")
-                            clean_name = full_name.split(",")[0] if full_name else "District Emergency Rescue Squad"
-                            item_id = item.get("place_id") or clean_name[:15]
-                            
-                            if item_id in seen_ids:
-                                continue
-                            seen_ids.add(item_id)
-                            
-                            gis_rescuers.append(RescueFacilitySchema(
-                                id=f"gis_resc_{idx}_{uuid.uuid4().hex[:6]}",
-                                name=f"{clean_name} (Emergency Dispatch)",
-                                organization="State Forest Department & Wildlife Rescue Division",
-                                state=state_name or "India",
-                                district=full_name.split(",")[1].strip() if "," in full_name else "Local Division",
-                                phone="1926",
-                                response_hours="24x7 Real-Time Wildlife Dispatch"
-                            ))
-                except Exception as inner_e:
-                    logger.warning(f"Nominatim term '{term}' query failed: {inner_e}")
-                    continue
-    except Exception as e:
-        logger.warning(f"Live GIS Rescue fetch failed: {e}")
-    return gis_rescuers
 
 @router.get("/rescue", response_model=List[RescueFacilitySchema])
 async def get_rescue_facilities(
