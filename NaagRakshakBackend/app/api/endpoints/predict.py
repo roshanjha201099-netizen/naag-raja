@@ -208,15 +208,16 @@ async def predict_snake(
         computed_status = "LOW_ACCURACY"
 
     from app.db.schemas import LocationPayloadSchema
+    loc_disp = f"{state}, India" if state else "India"
     res_obj.location = LocationPayloadSchema(
         latitude=user_lat,
         longitude=user_lng,
         accuracy_meters=user_accuracy,
-        display_name=f"{state or 'Bihar'}, India",
+        display_name=loc_disp,
         district=None,
-        state=state or "Bihar",
+        state=state,
         country="India",
-        region=state or "Bihar",
+        region=state,
         source=computed_source,
         status=computed_status
     )

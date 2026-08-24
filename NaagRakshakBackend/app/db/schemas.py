@@ -85,11 +85,11 @@ class LocationPayloadSchema(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
     accuracy_meters: Optional[float] = None
-    display_name: str = "Bihar, India"
+    display_name: Optional[str] = "India"
     district: Optional[str] = None
-    state: str = "Bihar"
+    state: Optional[str] = None
     country: str = "India"
-    region: str = "Bihar"
+    region: Optional[str] = None
     source: str = "GPS"  # "GPS" or "MANUAL_GEOCODED"
     status: str = "ACCURATE"  # "ACCURATE", "LOW_ACCURACY", "MANUAL"
 
