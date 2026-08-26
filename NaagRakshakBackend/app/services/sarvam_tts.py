@@ -26,11 +26,25 @@ class SarvamTTSService:
     async def generate_speech_audio(
         self,
         text_script: str,
-        language_code: str = "hi-IN"
+        language_code: str = "en-IN"
     ) -> Optional[str]:
-        if not self.api_key:
-            logger.warning("SARVAM_API_KEY is missing. Skipping TTS generation.")
-            return None
+        if not self.api_key or self.api_key.startswith("your_") or self.api_key == "demo_key":
+            logger.info("SARVAM_API_KEY not configured. Generating gTTS spoken audio fallback...")
+            try:
+                import io
+                import base64
+                from gtts import gTTS
+                fp = io.BytesIO()
+                tts = gTTS(text=text_script[:350], lang='en', slow=False)
+                tts.write_to_fp(fp)
+                fp.seek(0)
+                b64_str = base64.b64encode(fp.read()).decode('utf-8')
+                logger.info(f"✅ gTTS Audio Fallback generated successfully ({len(b64_str)} base64 chars).")
+                return b64_str
+            except Exception as ex:
+                logger.warning(f"gTTS audio fallback exception: {ex}")
+                return None
+
 
         clean_lang = language_code if language_code in VALID_SARVAM_LANGUAGES else "hi-IN"
 
@@ -65,10 +79,25 @@ class SarvamTTSService:
                         logger.info(f"Sarvam AI TTS audio generated successfully ({len(audios[0])} Base64 chars).")
                         return audios[0]
                 else:
-                    logger.warning(f"Sarvam AI TTS failed ({response.status_code}): {response.text}")
-                    return None
+                    logger.warning(f"Sarvam AI TTS failed ({response.status_code}): {response.text}. Falling back to gTTS...")
         except Exception as e:
-            logger.warning(f"Sarvam AI TTS API request exception: {e}")
+            logger.warning(f"Sarvam AI TTS API request exception: {e}. Falling back to gTTS...")
+
+        # Fallback to gTTS if Sarvam API fails
+        try:
+            import io
+            import base64
+            from gtts import gTTS
+            fp = io.BytesIO()
+            tts = gTTS(text=truncated_text[:350], lang='en', slow=False)
+            tts.write_to_fp(fp)
+            fp.seek(0)
+            b64_str = base64.b64encode(fp.read()).decode('utf-8')
+            logger.info(f"✅ gTTS Audio Fallback generated successfully ({len(b64_str)} base64 chars).")
+            return b64_str
+        except Exception as ex:
+            logger.warning(f"gTTS audio fallback exception: {ex}")
             return None
+
 
 sarvam_tts = SarvamTTSService()

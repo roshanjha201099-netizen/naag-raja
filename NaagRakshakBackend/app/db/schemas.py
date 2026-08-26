@@ -161,6 +161,9 @@ class PredictResponse(BaseModel):
     rescue: Optional[RescuePayloadSchema] = None
     medical: Optional[MedicalPayloadSchema] = None
     voice_alert: Optional[VoiceAlertPayloadSchema] = None
+    assistant_message: Optional[str] = None
+    audio_base64: Optional[str] = None
+
 
 class RegionalNameSchema(BaseModel):
     hindi: Optional[str] = None

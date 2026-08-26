@@ -26,6 +26,7 @@ async def predict_snake(
     intent: Optional[str] = Form("SNAKE_ENCOUNTER", description="User field intent enum"),
     state: Optional[str] = Form(None, description="Indian state or region name"),
     language_code: Optional[str] = Form("hi-IN", description="Regional language code"),
+    description: Optional[str] = Form(None, description="Optional specimen description/context for LLM"),
     user_lat: Optional[float] = Form(None, description="User latitude"),
     user_lng: Optional[float] = Form(None, description="User longitude"),
     user_accuracy: Optional[float] = Form(None, description="GPS Accuracy in meters"),
@@ -34,6 +35,7 @@ async def predict_snake(
     db: AsyncSession = Depends(get_db)
 ):
     start_time = time.time()
+
     req_id = str(uuid.uuid4())
     lang_clean = language_code if language_code else "hi-IN"
 
@@ -64,7 +66,10 @@ async def predict_snake(
     print(f"  * User Intent:         '{intent}' -> Parsed as: {intent_enum.value}")
     print(f"  * Indian State/Region: '{state}'")
     print(f"  * Language Code:       '{language_code}' (TTS Language: {lang_clean})")
+    if description:
+        print(f"  * Description (LLM):   '{description}'")
     print(f"  * GPS Latitude:        {user_lat if user_lat is not None else 'None (Manual Location)'}")
+
     print(f"  * GPS Longitude:       {user_lng if user_lng is not None else 'None (Manual Location)'}")
     print(f"  * GPS Accuracy:        {str(user_accuracy) + ' meters' if user_accuracy is not None else 'None'}")
     print(f"  * Specimen Image:      {has_image}")
@@ -106,32 +111,49 @@ async def predict_snake(
     }
 
     # --------------------------------------------------------------------------
-    # BOLD MODEL PREDICTION TERMINAL OUTPUT LOGGING
+    # RAW MODEL PREDICTION METRICS TERMINAL OUTPUT
     # --------------------------------------------------------------------------
-    is_snake = ml_result.get("snake_detected", True)
+    is_snake = ml_result.get("snake_detected", False)
     det_conf = ml_result.get("detection_confidence", 0.0)
 
     print("\n" + "🐍 "*35)
-    print(" [MODEL PREDICTION TERMINAL OUTPUT]")
+    print(" [MODEL RAW PREDICTION METRICS]")
     print("="*70)
-    print(f"  * Snake Detected:     {'YES ✅' if is_snake else 'NO ❌'} (Confidence: {det_conf*100:.1f}%)")
     if is_snake and top_1:
-        comm_name = top_1.get("common_name", "Unknown Species")
-        sci_name = top_1.get("scientific_name", "Unknown")
-        hin_name = top_1.get("hindi_name", "N/A")
-        prob_val = top_1.get("probability", 0.94)
+        class_key = top_1.get("class_key", top_1.get("common_name", "N/A"))
+        sci_name = top_1.get("scientific_name", class_key)
+        comm_name = top_1.get("common_name", class_key)
+        prob_val = top_1.get("probability", 0.0)
         prob_pct = (prob_val * 100) if prob_val <= 1.0 else prob_val
         is_venom = top_1.get("venomous", False)
-        print(f"  * Species Identified: {comm_name} ({sci_name})")
-        print(f"  * Local/Hindi Name:   {hin_name}")
-        print(f"  * Model Confidence:   {prob_pct:.1f}% Match")
-        print(f"  * Venom Status:       {'⚠️ VENOMOUS (HIGH DANGER)' if is_venom else '🟢 NON-VENOMOUS (HARMLESS)'}")
+
+        print(f"  * Snake Detected:     YES ✅ (Detection Conf: {det_conf*100:.1f}%)")
+        print(f"  * Predicted Class:    {class_key}")
+        print(f"  * Species / Name:     {comm_name} ({sci_name})")
+        print(f"  * Model Confidence:   {prob_pct:.2f}%")
+        print(f"  * Venom Status:       {'⚠️ VENOMOUS' if is_venom else '🟢 NON-VENOMOUS'}")
+        
+        top_k_list = ml_result.get("top_k", [])
+        if top_k_list:
+            print("  * Top Predictions:")
+            for idx, item in enumerate(top_k_list[:3], 1):
+                ck = item.get('class_key', item.get('common_name'))
+                cp = item.get('confidence_pct', round(item.get('probability', 0)*100, 2))
+                print(f"     {idx}. {ck} — {cp}%")
     else:
-        print("  * Model Status:       No snake specimen detected in uploaded image.")
+        det_obj = ml_result.get("detected_object", "Non-Snake Object")
+        top_labels = ml_result.get("top_detected_labels", [])
+        print(f"  * Snake Detected:     NO ❌")
+        print(f"  * Detected Subject:   {det_obj}")
+        if top_labels:
+            print(f"  * Foundation Labels:  {', '.join(top_labels)}")
+        print("  * Result:             No snake detected in uploaded specimen image.")
     print("="*70)
     print("🐍 "*35 + "\n")
 
-    logger.info(f"📍 MODEL PREDICTION: Is Snake={is_snake} | Species={top_1.get('common_name')} ({top_1.get('scientific_name')}) | Conf={top_1.get('probability', 0.94)*100:.1f}% | Venomous={top_1.get('venomous')}")
+
+    logger.info(f"📍 NEW MODEL PREDICTION: Is Snake={is_snake} | Species={top_1.get('common_name')} ({top_1.get('scientific_name')}) | Conf={top_1.get('probability', 0)*100:.1f}% | Venomous={top_1.get('venomous')}")
+
 
     # 5. Deterministic Safety Engine Evaluation (Intent-aware)
     safety_payload = DeterministicSafetyEngine.evaluate_safety(
@@ -141,41 +163,78 @@ async def predict_snake(
     )
 
 
-    # 6. Bypass external LLM and TTS calls for pure fast ML model prediction
-    regional_explanation = None
-    audio_base64 = None
+    # 5. Query ASV Hospital & Rescue Info for LLM & Response Context
     nearest_hosp_name = None
     nearest_hosp_dist = None
-
-    proc_time_ms = float(round((time.time() - start_time) * 1000, 2))
-
-
-    # 8. Persist Prediction Log to DB
+    nearest_hosp_obj = None
     try:
-        log_entry = PredictionLog(
-            request_id=req_id,
-            image_quality_score=quality_score,
-            snake_detected=ml_result.get("snake_detected", True),
-            detection_confidence=ml_result.get("detection_confidence", 0.95),
-            top_species_id=top_1.get("species_id", 1),
-            calibrated_confidence=ml_result.get("identification_status", "HIGH_CONFIDENCE"),
-            safety_level=safety_payload.safety_level.value,
-            processing_time_ms=proc_time_ms
+        from app.api.endpoints.medical import get_medical_facilities
+        hospitals = await get_medical_facilities(
+            state=state,
+            district=None,
+            asv_only=True,
+            user_lat=user_lat,
+            user_lng=user_lng,
+            user_accuracy=user_accuracy,
+            db=db
         )
-        db.add(log_entry)
-        await db.commit()
-    except Exception as e:
-        logger.warning(f"Failed to record prediction log to DB: {e}")
+        if hospitals and len(hospitals) > 0:
+            nearest_hosp_obj = hospitals[0]
+            nearest_hosp_name = hospitals[0].name
+            nearest_hosp_dist = hospitals[0].distance_km
+    except Exception as ex:
+        logger.warning(f"Could not query nearest hospital for explainer: {ex}")
 
-    # 6.5 Query Verified Rescue Helplines & Facilities
+    rescue_helpline_str = "Forest Emergency Helpline 1926"
     rescue_facilities_list = []
     try:
         from app.api.endpoints.rescue import get_rescue_facilities
         rescue_facilities_list = await get_rescue_facilities(state=state, user_lat=user_lat, user_lng=user_lng, db=db)
+        if rescue_facilities_list and len(rescue_facilities_list) > 0:
+            rescue_helpline_str = f"{rescue_facilities_list[0].name} ({rescue_facilities_list[0].phone})"
     except Exception as ex:
         logger.warning(f"Could not query rescue facilities: {ex}")
 
-    nearest_hosp_obj = None
+    # 6. LLM Curated Assistant Message Generation (Vertex AI / Gemini)
+    snake_comm_name = top_1.get("common_name", top_1.get("scientific_name", "Unknown Snake"))
+    conf_val = top_1.get("probability", ml_result.get("detection_confidence", 0.90))
+
+    regional_explanation = await llm_explainer.generate_explanation(
+        snake_species=snake_comm_name,
+        confidence=conf_val,
+        venomous=top_1.get("venomous", False),
+        danger_level=safety_payload.safety_level.value,
+        user_description=description,
+        state=state,
+        user_lat=user_lat,
+        user_lng=user_lng,
+        nearest_hospital_name=nearest_hosp_name,
+        nearest_hospital_distance_km=nearest_hosp_dist,
+        rescue_helpline=rescue_helpline_str,
+        is_snake_detected=is_snake
+    )
+
+    print("\n" + "🗣️  "*35)
+    print(" [LLM TEXT GENERATED & SENT TO SARVAM TTS]")
+    print("="*70)
+    print(f"  * Spoken Script:   '{regional_explanation}'")
+    print("="*70)
+
+    # 7. Sarvam AI Text-to-Speech (TTS) Voice Audio Generation
+    audio_base64 = None
+    if regional_explanation:
+        audio_base64 = await sarvam_tts.generate_speech_audio(
+            text_script=regional_explanation,
+            language_code=lang_clean
+        )
+
+    print(f"  * Sarvam Audio:    {'YES ✅ (' + str(len(audio_base64 or '')) + ' chars Base64 MP3)' if audio_base64 else 'NO ❌ (Using WebSpeech Fallback)'}")
+    print("="*70)
+    print("🗣️  "*35 + "\n")
+
+    proc_time_ms = float(round((time.time() - start_time) * 1000, 2))
+
+
 
 
     # 9. Compose Intent-Driven Response

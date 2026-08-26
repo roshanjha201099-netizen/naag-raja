@@ -26,16 +26,17 @@ class ResponseComposerService:
         # Build predictions array
         pred_schemas = [
             SpeciesPredictionSchema(
-                species_id=p["species_id"],
-                scientific_name=p["scientific_name"],
-                common_name=p["common_name"],
-                family=p["family"],
-                raw_probability=p["raw_probability"],
-                calibrated_confidence=p["calibrated_confidence"],
+                species_id=p.get("species_id", idx + 1),
+                scientific_name=p.get("scientific_name", "Unknown"),
+                common_name=p.get("common_name", "Unknown Species"),
+                family=p.get("family", "Reptilia (Serpentes)"),
+                raw_probability=p.get("raw_probability", p.get("probability", 0.0)),
+                calibrated_confidence=p.get("calibrated_confidence", p.get("probability", 0.0)),
                 regional_presence=p.get("regional_presence", "COMMON")
             )
-            for p in ranked_predictions
+            for idx, p in enumerate(ranked_predictions)
         ]
+
 
         # Build Protocol based on intent
         if intent == IntentEnum.SNAKE_BITE_EMERGENCY:
@@ -188,5 +189,8 @@ class ResponseComposerService:
             intent=intent.value if hasattr(intent, 'value') else str(intent),
             rescue=RescuePayloadSchema(contacts=[]),
             medical=MedicalPayloadSchema(nearest_facility=None),
-            voice_alert=v_alert
+            voice_alert=v_alert,
+            assistant_message=llm_explanation,
+            audio_base64=audio_base64
         )
+
