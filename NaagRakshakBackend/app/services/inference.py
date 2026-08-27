@@ -131,20 +131,26 @@ class PyTorchSnakeClassifier:
             self.general_model.eval()
             self.imagenet_categories = self.general_weights.meta["categories"]
 
-            # 2. Check & Download Fine-tuned PyTorch Model Checkpoint if missing
+            # 2. Check & Reassemble split PyTorch Model Checkpoint if missing
             if not os.path.exists(self.model_path):
-                model_url = os.getenv("MODEL_DOWNLOAD_URL", "https://huggingface.co/roshanjha201099/naagrakshak-models/resolve/main/snake_classifier.pth")
-                logger.info(f"Model checkpoint missing at '{self.model_path}'. Attempting automatic download...")
-                try:
-                    os.makedirs(os.path.dirname(self.model_path), exist_ok=True)
-                    import urllib.request
-                    urllib.request.urlretrieve(model_url, self.model_path)
-                    logger.info("✅ PyTorch model checkpoint downloaded successfully.")
-                except Exception as dl_err:
-                    logger.warning(f"Failed to auto-download model checkpoint: {dl_err}")
+                part1_path = os.path.join(os.path.dirname(self.model_path), "snake_classifier_part1.bin")
+                part2_path = os.path.join(os.path.dirname(self.model_path), "snake_classifier_part2.bin")
+                
+                if os.path.exists(part1_path) and os.path.exists(part2_path):
+                    logger.info(f"Model checkpoint missing at '{self.model_path}'. Reassembling from split binary chunks...")
+                    try:
+                        with open(self.model_path, "wb") as f_out:
+                            with open(part1_path, "rb") as f1:
+                                f_out.write(f1.read())
+                            with open(part2_path, "rb") as f2:
+                                f_out.write(f2.read())
+                        logger.info("✅ PyTorch model checkpoint reassembled successfully.")
+                    except Exception as merge_err:
+                        logger.error(f"Failed to reassemble split model checkpoint parts: {merge_err}")
 
             if os.path.exists(self.model_path):
                 checkpoint = torch.load(self.model_path, map_location=self.device)
+
 
                 
                 arch = "convnext_small"

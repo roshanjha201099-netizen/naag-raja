@@ -68,6 +68,12 @@ saved_models/
 *.bin
 *.tflite
 *.safetensors
+!NaagRakshakBackend/app/models/*.pth
+!**/snake_classifier.pth
+!NaagRakshakBackend/app/models/*.bin
+!**/snake_classifier_part*.bin
+
+
 
 # Experiment Logging & Profiling
 runs/
