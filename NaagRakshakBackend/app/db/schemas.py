@@ -21,6 +21,8 @@ class IdentificationStatusEnum(str, Enum):
     MODERATE_CONFIDENCE = "MODERATE_CONFIDENCE"
     UNABLE_TO_IDENTIFY = "UNABLE_TO_IDENTIFY"
     NO_SNAKE_DETECTED = "NO_SNAKE_DETECTED"
+    MODEL_NOT_READY = "MODEL_NOT_READY"
+
 
 class BoundingBoxSchema(BaseModel):
     x_min: int = 0
