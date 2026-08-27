@@ -131,9 +131,21 @@ class PyTorchSnakeClassifier:
             self.general_model.eval()
             self.imagenet_categories = self.general_weights.meta["categories"]
 
-            # 2. Load Fine-tuned PyTorch Model Checkpoint
+            # 2. Check & Download Fine-tuned PyTorch Model Checkpoint if missing
+            if not os.path.exists(self.model_path):
+                model_url = os.getenv("MODEL_DOWNLOAD_URL", "https://huggingface.co/roshanjha201099/naagrakshak-models/resolve/main/snake_classifier.pth")
+                logger.info(f"Model checkpoint missing at '{self.model_path}'. Attempting automatic download...")
+                try:
+                    os.makedirs(os.path.dirname(self.model_path), exist_ok=True)
+                    import urllib.request
+                    urllib.request.urlretrieve(model_url, self.model_path)
+                    logger.info("✅ PyTorch model checkpoint downloaded successfully.")
+                except Exception as dl_err:
+                    logger.warning(f"Failed to auto-download model checkpoint: {dl_err}")
+
             if os.path.exists(self.model_path):
                 checkpoint = torch.load(self.model_path, map_location=self.device)
+
                 
                 arch = "convnext_small"
                 if isinstance(checkpoint, dict):
