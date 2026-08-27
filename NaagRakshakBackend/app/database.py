@@ -18,14 +18,21 @@ def get_engine():
         return _engine
 
     try:
+        db_url = settings.DATABASE_URL
+        if db_url.startswith("postgresql://"):
+            db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        elif db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
+
         # Test connecting to PostgreSQL database
         _engine = create_async_engine(
-            settings.DATABASE_URL,
+            db_url,
             echo=False,
             future=True,
             pool_size=10,
             max_overflow=20
         )
+
         active_db_type = "postgresql"
         logger.info("Initialized Async PostgreSQL Engine")
     except Exception as e:
