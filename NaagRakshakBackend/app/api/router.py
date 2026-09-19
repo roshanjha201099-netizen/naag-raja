@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.endpoints import predict, species, medical, rescue, health, sighting, location
+from app.api.endpoints import predict, species, medical, rescue, health, sighting, location, ws
 
 api_router = APIRouter()
 
@@ -10,3 +10,5 @@ api_router.include_router(species.router, tags=["Taxonomy & Species"])
 api_router.include_router(medical.router, tags=["ASV Medical Facilities"])
 api_router.include_router(rescue.router, tags=["Wildlife Rescue Dispatch"])
 api_router.include_router(sighting.router, tags=["Snake Sighting Reports"])
+api_router.include_router(ws.router, tags=["WebSocket Real-Time Stream"])
+

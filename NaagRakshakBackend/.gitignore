@@ -1,0 +1,35 @@
+# Python Caches & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Environment Variables & Secrets (NEVER COMMIT)
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+keys/*.json
+
+# Virtual Environments
+venv/
+.venv/
+env/
+
+# Database & Storage Artifacts
+*.db
+*.sqlite
+*.sql
+*.pdf
+
+# Logs
+*.log
+logs/
+
+# Bytecode & Checkpoints
+app/models/*.pth
+app/models/*.bin
+models/*.pth
+models/*.bin

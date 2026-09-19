@@ -64,11 +64,17 @@ class MedicalFacility(Base):
     district = Column(String(64), nullable=False, index=True)
     address = Column(Text, nullable=False)
     phone = Column(String(64), nullable=False)
-    asv_available = Column(Boolean, default=True, nullable=False)
+    asv_available = Column(Boolean, default=True, nullable=False, index=True)
     icu_facility = Column(Boolean, default=True, nullable=False)
     ventilator_count = Column(Integer, default=10, nullable=False)
-    latitude = Column(Float, nullable=True)
-    longitude = Column(Float, nullable=True)
+    latitude = Column(Float, nullable=True, index=True)
+    longitude = Column(Float, nullable=True, index=True)
+
+    # Composite index for ultra-fast spatial bounding queries
+    __table_args__ = (
+        Index("idx_facility_coords", "latitude", "longitude"),
+        Index("idx_facility_asv_state", "state", "asv_available"),
+    )
 
 class RescueFacility(Base):
     __tablename__ = "rescue_facilities"

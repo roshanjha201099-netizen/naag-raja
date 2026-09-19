@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.api.router import api_router
+from app.database import verify_db_connection
 from app.db.init_db import init_db
 
 logging.basicConfig(
@@ -19,6 +20,7 @@ logger = logging.getLogger("naagrakshak.main")
 async def lifespan(app: FastAPI):
     logger.info("Starting NaagRakshak FastAPI Production Backend Engine...")
     try:
+        await verify_db_connection()
         await init_db()
     except Exception as e:
         logger.warning(f"Database initialization warning: {e}")

@@ -2,7 +2,7 @@ import time
 import uuid
 import logging
 from typing import Optional, List
-from fastapi import APIRouter, File, UploadFile, Form, Depends, HTTPException, status
+from fastapi import APIRouter, File, UploadFile, Form, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.db.models import PredictionLog
@@ -12,15 +12,15 @@ from app.services.quality import ImageQualityAnalyzer
 from app.services.inference import ml_engine
 from app.services.geo_ranking import LocationAwareRankingService
 from app.services.safety_engine import DeterministicSafetyEngine
-from app.services.llm_explainer import llm_explainer
-from app.services.sarvam_tts import sarvam_tts
 from app.services.response_composer import ResponseComposerService
+from app.services.stream_worker import process_ai_enrichment_stream
 
 logger = logging.getLogger("naagrakshak.predict")
 router = APIRouter()
 
 @router.post("/predict", response_model=PredictResponse)
 async def predict_snake(
+    background_tasks: BackgroundTasks,
     image: Optional[UploadFile] = File(None, description="Single snake specimen field image file (JPEG, PNG, WEBP)"),
     image_base64: Optional[str] = Form(None, description="Base64 encoded image string"),
     intent: Optional[str] = Form("SNAKE_ENCOUNTER", description="User field intent enum"),
@@ -29,15 +29,24 @@ async def predict_snake(
     description: Optional[str] = Form(None, description="Optional specimen description/context for LLM"),
     user_lat: Optional[float] = Form(None, description="User latitude"),
     user_lng: Optional[float] = Form(None, description="User longitude"),
+    latitude: Optional[float] = Form(None, description="Alternative alias for user latitude"),
+    longitude: Optional[float] = Form(None, description="Alternative alias for user longitude"),
     user_accuracy: Optional[float] = Form(None, description="GPS Accuracy in meters"),
     location_source: Optional[str] = Form(None, description="Source of location data"),
     location_status: Optional[str] = Form(None, description="Status of location services"),
+    session_id: Optional[str] = Form(None, description="Client session tracking token for WebSocket streaming"),
+    is_bite: Optional[bool] = Form(False, description="Emergency bite incident flag"),
     db: AsyncSession = Depends(get_db)
 ):
     start_time = time.time()
 
     req_id = str(uuid.uuid4())
+    active_session_id = session_id or req_id
     lang_clean = language_code if language_code else "hi-IN"
+
+    # Consolidate location coordinates
+    lat_val = user_lat if user_lat is not None else latitude
+    lng_val = user_lng if user_lng is not None else longitude
 
     # Parse Intent Enum
     INTENT_ALIAS_MAP = {
@@ -52,26 +61,27 @@ async def predict_snake(
         "WILDLIFE_PHOTOGRAPHY": "WILDLIFE_PHOTOGRAPHY"
     }
     raw_intent_key = intent.upper().strip() if intent else "SNAKE_ENCOUNTER"
+    if is_bite:
+        raw_intent_key = "SNAKE_BITE_EMERGENCY"
+
     intent_clean = INTENT_ALIAS_MAP.get(raw_intent_key, "SNAKE_ENCOUNTER")
     try:
         intent_enum = IntentEnum(intent_clean)
     except ValueError:
         intent_enum = IntentEnum.SNAKE_ENCOUNTER
 
-    # Print Formatted Incoming Frontend Request Payload
+    # Print Request Log
     has_image = "Yes (Binary stream)" if image else ("Yes (Base64)" if image_base64 else "No")
     print("\n" + "="*75)
-    print(f">> [FRONTEND REQUEST RECEIVED] POST /api/v1/predict (Request ID: {req_id})")
+    print(f">> [DECOUPLED PREDICT REQUEST] POST /api/v1/predict (Session ID: {active_session_id})")
     print("="*75)
     print(f"  * User Intent:         '{intent}' -> Parsed as: {intent_enum.value}")
     print(f"  * Indian State/Region: '{state}'")
     print(f"  * Language Code:       '{language_code}' (TTS Language: {lang_clean})")
     if description:
         print(f"  * Description (LLM):   '{description}'")
-    print(f"  * GPS Latitude:        {user_lat if user_lat is not None else 'None (Manual Location)'}")
-
-    print(f"  * GPS Longitude:       {user_lng if user_lng is not None else 'None (Manual Location)'}")
-    print(f"  * GPS Accuracy:        {str(user_accuracy) + ' meters' if user_accuracy is not None else 'None'}")
+    print(f"  * GPS Latitude:        {lat_val if lat_val is not None else 'None (Manual Location)'}")
+    print(f"  * GPS Longitude:       {lng_val if lng_val is not None else 'None (Manual Location)'}")
     print(f"  * Specimen Image:      {has_image}")
     print("="*75 + "\n")
 
@@ -93,7 +103,7 @@ async def predict_snake(
             detail="A valid image file (or image_base64) must be provided."
         )
 
-    # 2 & 3. Process Single Image Inference Pipeline
+    # 2 & 3. Synchronous Fast-path ML Inference (~150-300ms)
     quality_score = ImageQualityAnalyzer.analyze_quality(pil_img)
     ml_result = ml_engine.predict(pil_img, quality_score)
 
@@ -101,7 +111,6 @@ async def predict_snake(
     top_k_candidates = ml_result.get("top_k", [])
     ranked_candidates = LocationAwareRankingService.rerank_predictions(top_k_candidates, state=state)
 
-    # Top-1 candidate after geo re-ranking
     top_1 = ranked_candidates[0] if ranked_candidates else {
         "species_id": 1,
         "scientific_name": "Unknown",
@@ -110,60 +119,16 @@ async def predict_snake(
         "medically_significant": False
     }
 
-    # --------------------------------------------------------------------------
-    # RAW MODEL PREDICTION METRICS TERMINAL OUTPUT
-    # --------------------------------------------------------------------------
     is_snake = ml_result.get("snake_detected", False)
     det_conf = ml_result.get("detection_confidence", 0.0)
 
-    print("\n" + "🐍 "*35)
-    print(" [MODEL RAW PREDICTION METRICS]")
-    print("="*70)
-    if is_snake and top_1:
-        class_key = top_1.get("class_key", top_1.get("common_name", "N/A"))
-        sci_name = top_1.get("scientific_name", class_key)
-        comm_name = top_1.get("common_name", class_key)
-        prob_val = top_1.get("probability", 0.0)
-        prob_pct = (prob_val * 100) if prob_val <= 1.0 else prob_val
-        is_venom = top_1.get("venomous", False)
-
-        print(f"  * Snake Detected:     YES ✅ (Detection Conf: {det_conf*100:.1f}%)")
-        print(f"  * Predicted Class:    {class_key}")
-        print(f"  * Species / Name:     {comm_name} ({sci_name})")
-        print(f"  * Model Confidence:   {prob_pct:.2f}%")
-        print(f"  * Venom Status:       {'⚠️ VENOMOUS' if is_venom else '🟢 NON-VENOMOUS'}")
-        
-        top_k_list = ml_result.get("top_k", [])
-        if top_k_list:
-            print("  * Top Predictions:")
-            for idx, item in enumerate(top_k_list[:3], 1):
-                ck = item.get('class_key', item.get('common_name'))
-                cp = item.get('confidence_pct', round(item.get('probability', 0)*100, 2))
-                print(f"     {idx}. {ck} — {cp}%")
-    else:
-        det_obj = ml_result.get("detected_object", "Non-Snake Object")
-        top_labels = ml_result.get("top_detected_labels", [])
-        print(f"  * Snake Detected:     NO ❌")
-        print(f"  * Detected Subject:   {det_obj}")
-        if top_labels:
-            print(f"  * Foundation Labels:  {', '.join(top_labels)}")
-        print("  * Result:             No snake detected in uploaded specimen image.")
-    print("="*70)
-    print("🐍 "*35 + "\n")
-
-
-    logger.info(f"📍 NEW MODEL PREDICTION: Is Snake={is_snake} | Species={top_1.get('common_name')} ({top_1.get('scientific_name')}) | Conf={top_1.get('probability', 0)*100:.1f}% | Venomous={top_1.get('venomous')}")
-
-
-    # 5. Deterministic Safety Engine Evaluation (Intent-aware)
+    # 5. Deterministic Safety Engine Evaluation & Facility Lookups
     safety_payload = DeterministicSafetyEngine.evaluate_safety(
         top_prediction=top_1,
         identification_status=ml_result.get("identification_status", "HIGH_CONFIDENCE"),
         intent=intent_enum.value
     )
 
-
-    # 5. Query ASV Hospital & Rescue Info for LLM & Response Context
     nearest_hosp_name = None
     nearest_hosp_dist = None
     nearest_hosp_obj = None
@@ -173,8 +138,8 @@ async def predict_snake(
             state=state,
             district=None,
             asv_only=True,
-            user_lat=user_lat,
-            user_lng=user_lng,
+            user_lat=lat_val,
+            user_lng=lng_val,
             user_accuracy=user_accuracy,
             db=db
         )
@@ -183,61 +148,39 @@ async def predict_snake(
             nearest_hosp_name = hospitals[0].name
             nearest_hosp_dist = hospitals[0].distance_km
     except Exception as ex:
-        logger.warning(f"Could not query nearest hospital for explainer: {ex}")
+        logger.warning(f"Could not query nearest hospital: {ex}")
 
     rescue_helpline_str = "Forest Emergency Helpline 1926"
     rescue_facilities_list = []
     try:
         from app.api.endpoints.rescue import get_rescue_facilities
-        rescue_facilities_list = await get_rescue_facilities(state=state, user_lat=user_lat, user_lng=user_lng, db=db)
+        rescue_facilities_list = await get_rescue_facilities(state=state, user_lat=lat_val, user_lng=lng_val, db=db)
         if rescue_facilities_list and len(rescue_facilities_list) > 0:
             rescue_helpline_str = f"{rescue_facilities_list[0].name} ({rescue_facilities_list[0].phone})"
     except Exception as ex:
         logger.warning(f"Could not query rescue facilities: {ex}")
 
-    # 6. LLM Curated Assistant Message Generation (Vertex AI / Gemini)
-    snake_comm_name = top_1.get("common_name", top_1.get("scientific_name", "Unknown Snake"))
-    conf_val = top_1.get("probability", ml_result.get("detection_confidence", 0.90))
-
-    regional_explanation = await llm_explainer.generate_explanation(
-        snake_species=snake_comm_name,
-        confidence=conf_val,
-        venomous=top_1.get("venomous", False),
-        danger_level=safety_payload.safety_level.value,
+    # 6. Push LLM explanation & Sarvam AI TTS audio to Background Task (Asynchronous Stream)
+    background_tasks.add_task(
+        process_ai_enrichment_stream,
+        session_id=active_session_id,
+        species_facts=top_1,
+        is_bite=(intent_enum == IntentEnum.SNAKE_BITE_EMERGENCY or is_bite),
         user_description=description,
         state=state,
-        user_lat=user_lat,
-        user_lng=user_lng,
+        user_lat=lat_val,
+        user_lng=lng_val,
+        language_code=lang_clean,
         nearest_hospital_name=nearest_hosp_name,
         nearest_hospital_distance_km=nearest_hosp_dist,
         rescue_helpline=rescue_helpline_str,
         is_snake_detected=is_snake
     )
-
-    print("\n" + "🗣️  "*35)
-    print(" [LLM TEXT GENERATED & SENT TO SARVAM TTS]")
-    print("="*70)
-    print(f"  * Spoken Script:   '{regional_explanation}'")
-    print("="*70)
-
-    # 7. Sarvam AI Text-to-Speech (TTS) Voice Audio Generation
-    audio_base64 = None
-    if regional_explanation:
-        audio_base64 = await sarvam_tts.generate_speech_audio(
-            text_script=regional_explanation,
-            language_code=lang_clean
-        )
-
-    print(f"  * Sarvam Audio:    {'YES ✅ (' + str(len(audio_base64 or '')) + ' chars Base64 MP3)' if audio_base64 else 'NO ❌ (Using WebSpeech Fallback)'}")
-    print("="*70)
-    print("🗣️  "*35 + "\n")
+    logger.info(f"Background task added for session {active_session_id} AI enrichment stream.")
 
     proc_time_ms = float(round((time.time() - start_time) * 1000, 2))
 
-
-
-
-    # 9. Compose Intent-Driven Response
+    # 7. Compose & Return Immediate Synchronous Response (<300ms)
     res_obj = ResponseComposerService.compose_response(
         request_id=req_id,
         ml_result=ml_result,
@@ -247,18 +190,19 @@ async def predict_snake(
         state=state,
         quality_score=quality_score,
         processing_time_ms=proc_time_ms,
-        llm_explanation=regional_explanation,
-        audio_base64=audio_base64,
+        llm_explanation=None,  # Streamed via WebSocket
+        audio_base64=None,     # Streamed via WebSocket
         language_code=lang_clean
     )
     
-    # Dynamic Location Payload Contract
-    computed_source = location_source or ("MANUAL_GEOCODED" if user_lat is not None and user_accuracy is None else "GPS")
+    res_obj.session_id = active_session_id
+
+    computed_source = location_source or ("MANUAL_GEOCODED" if lat_val is not None and user_accuracy is None else "GPS")
     if user_accuracy is not None and user_accuracy <= 5000:
         computed_status = "ACCURATE"
     elif computed_source == "MANUAL_GEOCODED":
         computed_status = "MANUAL"
-    elif user_lat is not None:
+    elif lat_val is not None:
         computed_status = "LOW_ACCURACY"
     else:
         computed_status = "LOW_ACCURACY"
@@ -266,8 +210,8 @@ async def predict_snake(
     from app.db.schemas import LocationPayloadSchema
     loc_disp = f"{state}, India" if state else "India"
     res_obj.location = LocationPayloadSchema(
-        latitude=user_lat,
-        longitude=user_lng,
+        latitude=lat_val,
+        longitude=lng_val,
         accuracy_meters=user_accuracy,
         display_name=loc_disp,
         district=None,
@@ -283,4 +227,6 @@ async def predict_snake(
         res_obj.medical.nearest_facility = nearest_hosp_obj
     if res_obj.rescue:
         res_obj.rescue.contacts = rescue_facilities_list[:3]
+
+    print(f">> [FAST-PATH RESPONSE RETURNED] Session ID: {active_session_id} | Response Time: {proc_time_ms}ms")
     return res_obj

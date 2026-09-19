@@ -1,5 +1,8 @@
 import os
+from pathlib import Path
 from pydantic_settings import BaseSettings
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
@@ -14,16 +17,16 @@ class Settings(BaseSettings):
     POSTGRES_SERVER: str = "localhost"
     POSTGRES_PORT: str = "5432"
     POSTGRES_DB: str = "naagrakshak"
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:7044@localhost:5432/naagrakshak"
+    DATABASE_URL: str = "postgresql+asyncpg://neondb_owner:npg_Wzmd94KELvwC@ep-polished-cloud-azi8hzm2-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?ssl=require"
     SQLITE_URL: str = "sqlite+aiosqlite:///./naagrakshak.db"
 
-    # API Keys
-    OPENAI_API_KEY: str = ""
-    GEMINI_API_KEY: str = "AIzaSyCveuSoCKUbUIQbvHm-A7Y0ZcgUMq9sd40"
-    VERTEX_CREDENTIALS_PATH: str = "keys/demo-other-vertext.json"
-    GOOGLE_SEARCH_API_KEY: str = ""
-    SARVAM_API_KEY: str = "sk_i3a2823s_F10bhgrSZaMkKubyXNXUPh9P"
-    SARVAM_TTS_URL: str = "https://api.sarvam.ai/text-to-speech"
+    # API Keys (Loaded strictly from environment / .env file)
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    VERTEX_CREDENTIALS_PATH: str = os.getenv("VERTEX_CREDENTIALS_PATH", "")
+    GOOGLE_SEARCH_API_KEY: str = os.getenv("GOOGLE_SEARCH_API_KEY", "")
+    SARVAM_API_KEY: str = os.getenv("SARVAM_API_KEY", "")
+    SARVAM_TTS_URL: str = os.getenv("SARVAM_TTS_URL", "https://api.sarvam.ai/text-to-speech")
 
     # Model Storage Paths
     MODEL_ONNX_PATH: str = "models/snake_model.onnx"
@@ -39,7 +42,8 @@ class Settings(BaseSettings):
     RATE_LIMIT_PER_MINUTE: int = 60
 
     class Config:
-        env_file = ".env"
+        env_file = str(BASE_DIR / ".env")
         extra = "ignore"
 
 settings = Settings()
+

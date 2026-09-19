@@ -85,7 +85,7 @@ def build_model(arch: str = "convnext_small", num_classes: int = 22, pretrained:
 
 class PyTorchSnakeClassifier:
     """
-    2-Stage PyTorch Snake Inference Engine (new_stuff ConvNeXt-Small Architecture).
+    2-Stage PyTorch Snake Inference Engine (ConvNeXt-Small Architecture).
     Stage 1: Foundation check (Is it a snake or non-snake object like human, vehicle, furniture).
     Stage 2: Fine-tuned species classifier (22 species classes + regional knowledge DB).
     """
@@ -144,15 +144,13 @@ class PyTorchSnakeClassifier:
                                 f_out.write(f1.read())
                             with open(part2_path, "rb") as f2:
                                 f_out.write(f2.read())
-                        logger.info("✅ PyTorch model checkpoint reassembled successfully.")
+                        logger.info("PyTorch model checkpoint reassembled successfully.")
                     except Exception as merge_err:
                         logger.error(f"Failed to reassemble split model checkpoint parts: {merge_err}")
 
             if os.path.exists(self.model_path):
                 checkpoint = torch.load(self.model_path, map_location=self.device)
 
-
-                
                 arch = "convnext_small"
                 if isinstance(checkpoint, dict):
                     arch = checkpoint.get("arch", "convnext_small")
@@ -175,7 +173,7 @@ class PyTorchSnakeClassifier:
                 self.model.to(self.device)
                 self.model.eval()
                 self.is_loaded = True
-                logger.info(f"✅ [PyTorch ML Engine] Loaded new_stuff model checkpoint from {self.model_path} ({len(self.class_names)} species classes).")
+                logger.info(f"Loaded original PyTorch model checkpoint from {self.model_path} ({len(self.class_names)} species classes).")
             else:
                 logger.error(f"Model checkpoint not found at {self.model_path}")
         except Exception as e:
@@ -229,7 +227,7 @@ class PyTorchSnakeClassifier:
             verification = self.check_is_snake(tensor)
 
             if not verification["is_snake"]:
-                logger.info(f"🚫 [STAGE 1 GATE] Non-snake object detected: {verification['detected_general_object']}")
+                logger.info(f"Non-snake object detected: {verification['detected_general_object']}")
                 return {
                     "snake_detected": False,
                     "detection_confidence": 0.05,
@@ -266,10 +264,10 @@ class PyTorchSnakeClassifier:
 
                 danger_level = meta.get("danger_level", "EXTREME" if is_venomous else "LOW")
 
-
                 top_k_candidates.append({
                     "species_id": class_idx.item() + 1,
                     "class_key": class_key,
+                    "species_code": class_key,
                     "common_name": comm_name,
                     "scientific_name": sci_name,
                     "hindi_name": meta.get("hindi_name", None),
@@ -278,6 +276,7 @@ class PyTorchSnakeClassifier:
                     "raw_probability": round(prob_val, 4),
                     "calibrated_confidence": round(prob_val, 4),
                     "confidence_pct": round(prob_val * 100, 2),
+                    "confidence": round(prob_val * 100, 2),
                     "venomous": is_venomous,
                     "medically_significant": is_venomous,
                     "regional_presence": "COMMON",
@@ -286,13 +285,12 @@ class PyTorchSnakeClassifier:
                     "first_aid": meta.get("first_aid", "")
                 })
 
-
             top_1 = top_k_candidates[0] if top_k_candidates else {}
 
             return {
                 "snake_detected": True,
                 "detection_confidence": round(top_1.get("probability", 0.95), 3),
-                "identification_status": "HIGH_CONFIDENCE",
+                "identification_status": "HIGH_CONFIDENCE" if top_1.get("probability", 0.0) >= 0.70 else "MODERATE_CONFIDENCE",
                 "top_1": top_1,
                 "top_k": top_k_candidates
             }
@@ -302,7 +300,7 @@ class PyTorchSnakeClassifier:
             return {
                 "snake_detected": False,
                 "detection_confidence": 0.0,
-                "identification_status": "ERROR",
+                "identification_status": "UNABLE_TO_IDENTIFY",
                 "top_k": []
             }
 

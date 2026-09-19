@@ -77,7 +77,8 @@ async def get_medical_facilities(
     user_accuracy: Optional[float] = Query(None, description="GPS Accuracy in meters"),
     db: AsyncSession = Depends(get_db)
 ):
-    print(f">> [FRONTEND REQUEST] GET /api/v1/medical-facilities (State: '{state}', GPS: Lat={user_lat}, Lng={user_lng}, Accuracy={user_accuracy}m)")
+    acc_disp = f"{user_accuracy}m" if isinstance(user_accuracy, (int, float)) else "None"
+    print(f">> [FRONTEND REQUEST] GET /api/v1/medical-facilities (State: '{state}', GPS: Lat={user_lat}, Lng={user_lng}, Accuracy={acc_disp})")
     query = select(MedicalFacility)
     if asv_only:
         query = query.where(MedicalFacility.asv_available == True)

@@ -389,23 +389,34 @@ SAMPLE_RESCUE = [
 
 async def create_postgres_db_if_not_exists():
     try:
+        from urllib.parse import urlparse
+        db_url = settings.DATABASE_URL.replace("+asyncpg", "")
+        parsed = urlparse(db_url)
+        host = parsed.hostname or "localhost"
+        target_db = parsed.path.lstrip("/") if parsed.path else "naagrakshak"
+        
+        if "neon.tech" in host or host not in ("localhost", "127.0.0.1", "0.0.0.0"):
+            logger.info(f"Targeting remote/cloud database on '{host}' (Database: '{target_db}'). Skipping local DB creation check.")
+            return
+
         import asyncpg
-        logger.info("Checking if PostgreSQL database 'naagrakshak' exists...")
+        logger.info(f"Checking if local PostgreSQL database '{target_db}' exists on {host}...")
         conn = await asyncpg.connect(
-            user=settings.POSTGRES_USER,
-            password=settings.POSTGRES_PASSWORD,
-            host=settings.POSTGRES_SERVER,
-            port=int(settings.POSTGRES_PORT),
+            user=parsed.username or settings.POSTGRES_USER,
+            password=parsed.password or settings.POSTGRES_PASSWORD,
+            host=host,
+            port=parsed.port or int(settings.POSTGRES_PORT),
             database="postgres"
         )
-        db_exists = await conn.fetchval("SELECT 1 FROM pg_database WHERE datname = $1", settings.POSTGRES_DB)
+        db_exists = await conn.fetchval("SELECT 1 FROM pg_database WHERE datname = $1", target_db)
         if not db_exists:
-            logger.info(f"PostgreSQL database '{settings.POSTGRES_DB}' does not exist. Creating it now...")
-            await conn.execute(f'CREATE DATABASE "{settings.POSTGRES_DB}"')
-            logger.info(f"Created PostgreSQL database '{settings.POSTGRES_DB}'.")
+            logger.info(f"Local PostgreSQL database '{target_db}' does not exist. Creating it now...")
+            await conn.execute(f'CREATE DATABASE "{target_db}"')
+            logger.info(f"Created local PostgreSQL database '{target_db}'.")
         await conn.close()
     except Exception as e:
-        logger.warning(f"Could not connect to PostgreSQL default database: {e}. SQLite fallback will be used if needed.")
+        logger.warning(f"Local PostgreSQL database check skipped: {e}")
+
 
 async def init_db():
     await create_postgres_db_if_not_exists()

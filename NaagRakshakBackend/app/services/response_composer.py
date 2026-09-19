@@ -168,6 +168,12 @@ class ResponseComposerService:
             audio_base64=audio_base64
         )
 
+        raw_status = ml_result.get("identification_status", "HIGH_CONFIDENCE")
+        try:
+            parsed_status = IdentificationStatusEnum(raw_status)
+        except ValueError:
+            parsed_status = IdentificationStatusEnum.MODERATE_CONFIDENCE
+
         return PredictResponse(
             request_id=request_id,
             snake_detected=ml_result.get("snake_detected", True),
@@ -176,7 +182,7 @@ class ResponseComposerService:
             species_classification_probability=top_prob,
             overall_identification_confidence=overall_conf,
             bounding_box=bbox,
-            identification_status=IdentificationStatusEnum(ml_result.get("identification_status", "HIGH_CONFIDENCE")),
+            identification_status=parsed_status,
             prediction=top_prediction_schema,
             predictions_list=pred_schemas,
             predictions=pred_schemas,

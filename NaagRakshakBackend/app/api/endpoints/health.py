@@ -25,6 +25,7 @@ async def health_check(db: AsyncSession = Depends(get_db)):
         database_connected=db_connected,
         active_db_engine=active_db_type,
         model_loaded=ml_engine.is_loaded,
-        class_count=len(ml_engine.idx_to_class),
+        class_count=len(getattr(ml_engine, 'class_names', [])),
+
         uptime_seconds=uptime
     )

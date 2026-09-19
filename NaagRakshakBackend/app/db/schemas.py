@@ -140,6 +140,7 @@ class VoiceAlertPayloadSchema(BaseModel):
 
 class PredictResponse(BaseModel):
     request_id: str
+    session_id: Optional[str] = None
     snake_detected: bool
     detection_confidence: float
     snake_detection_confidence: Optional[float] = None
